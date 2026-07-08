@@ -69,10 +69,10 @@ export function AdminPage() {
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-[28px]">
-              Dashboard del team
+            <h1 className="headline text-[30px] leading-tight sm:text-[38px]">
+              La <em>fotografia</em> del team.
             </h1>
-            <p className="mt-1 text-sm text-subtle">
+            <p className="mt-2 text-sm text-subtle">
               Piano consolidato di agosto 2026 · copertura giorno per giorno,
               giorni critici ed export.
             </p>

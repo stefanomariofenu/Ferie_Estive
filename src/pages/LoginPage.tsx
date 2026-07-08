@@ -11,7 +11,6 @@ export function LoginPage() {
   const [step, setStep] = useState<Step>('form')
   const [email, setEmail] = useState('')
   const [nome, setNome] = useState('')
-  const [secondoNome, setSecondoNome] = useState('')
   const [cognome, setCognome] = useState('')
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
@@ -22,8 +21,8 @@ export function LoginPage() {
   const cleanEmail = email.trim().toLowerCase()
 
   async function sendCode(): Promise<boolean> {
-    // Nome completo = nome + eventuale secondo nome (es. "Stefano Mario").
-    const nomeCompleto = [nome.trim(), secondoNome.trim()].filter(Boolean).join(' ')
+    // Il campo Nome include eventuali secondi nomi (es. "Mario Enrico").
+    const nomeCompleto = nome.trim().replace(/\s+/g, ' ')
     // Metadati usati dal trigger DB al primo accesso per popolare public.users
     // (l'email aziendale, es. mrossi@kpmg.it, non basta a ricavare nome/cognome).
     const { error: sbError } = await supabase.auth.signInWithOtp({
@@ -98,9 +97,11 @@ export function LoginPage() {
         <div className="w-full max-w-sm">
           <div className="mb-8 flex flex-col items-center text-center">
             <Logo size="lg" />
-            <p className="mt-4 text-sm text-subtle">
-              Pianifica le tue ferie estive. Accedi con l'email aziendale
-              per iniziare.
+            <p className="headline mt-6 text-[22px] leading-snug">
+              Il tuo agosto, <em>senza</em> file Excel.
+            </p>
+            <p className="mt-2 text-sm text-subtle">
+              Accedi con l'email aziendale e pianifica in un minuto.
             </p>
           </div>
 
@@ -167,32 +168,21 @@ export function LoginPage() {
             </form>
           ) : (
             <form onSubmit={handleRequest} className="card p-6">
-              <div className="grid grid-cols-2 gap-3">
-                <label className="block text-sm font-medium text-ink">
-                  Nome
-                  <input
-                    type="text"
-                    autoComplete="given-name"
-                    required
-                    value={nome}
-                    onChange={(e) => setNome(e.target.value)}
-                    placeholder="Stefano"
-                    className="mt-1.5 w-full rounded-2xl border border-black/5 bg-muted px-4 py-2.5 text-sm text-ink outline-none transition focus:border-accent/40 focus:bg-surface"
-                  />
-                </label>
-                <label className="block text-sm font-medium text-ink">
-                  Secondo nome{' '}
-                  <span className="font-normal text-subtle">(opz.)</span>
-                  <input
-                    type="text"
-                    autoComplete="additional-name"
-                    value={secondoNome}
-                    onChange={(e) => setSecondoNome(e.target.value)}
-                    placeholder="Mario"
-                    className="mt-1.5 w-full rounded-2xl border border-black/5 bg-muted px-4 py-2.5 text-sm text-ink outline-none transition focus:border-accent/40 focus:bg-surface"
-                  />
-                </label>
-              </div>
+              <label className="block text-sm font-medium text-ink">
+                Nome{' '}
+                <span className="font-normal text-subtle">
+                  (incluso il secondo nome)
+                </span>
+                <input
+                  type="text"
+                  autoComplete="given-name"
+                  required
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  placeholder="Mario Enrico"
+                  className="mt-1.5 w-full rounded-2xl border border-black/5 bg-muted px-4 py-2.5 text-sm text-ink outline-none transition focus:border-accent/40 focus:bg-surface"
+                />
+              </label>
 
               <label className="mt-3 block text-sm font-medium text-ink">
                 Cognome

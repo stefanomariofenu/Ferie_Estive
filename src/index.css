@@ -61,6 +61,27 @@
     background-clip: text;
     color: transparent;
   }
+
+  /* Corsivo "estive": gradiente solare caldo, da alba a tramonto */
+  .sun-gradient {
+    background: linear-gradient(100deg, #f59e0b 0%, #f97316 55%, #e8590c 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Titoli editoriali: serif con corsivo di carattere */
+  .headline {
+    @apply font-display tracking-tight text-ink;
+    font-optical-sizing: auto;
+  }
+  .headline em {
+    font-style: italic;
+    background: linear-gradient(100deg, #f59e0b 0%, #f97316 60%, #e8590c 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
 }
 
 @layer utilities {

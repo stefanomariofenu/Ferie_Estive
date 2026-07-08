@@ -66,7 +66,9 @@ export function CalendarGrid({
     <div className="card p-4 sm:p-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-ink">Agosto 2026</h2>
+          <h2 className="headline text-[22px]">
+            <em>Agosto</em> 2026
+          </h2>
           <p className="text-xs text-subtle">
             Tocca o <span className="font-medium text-ink">trascina</span> per
             selezionare più giorni, poi scegli la categoria.

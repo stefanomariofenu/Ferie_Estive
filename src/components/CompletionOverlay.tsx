@@ -33,14 +33,14 @@ export function CompletionOverlay({ nome, onClose }: CompletionOverlayProps) {
       <div className="absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_50%,rgba(255,255,255,0.9),rgba(255,255,255,0)_70%)]" />
 
       <div className="relative flex flex-col items-center px-6 text-center animate-rise">
-        <p className="text-sm font-medium uppercase tracking-[0.2em] text-accent/70">
+        <p className="text-xs font-semibold uppercase tracking-[0.32em] text-accent/70">
           Piano completato
         </p>
-        <h2 className="mt-3 text-4xl font-semibold tracking-tight text-ink sm:text-5xl">
+        <h2 className="headline mt-4 text-4xl leading-tight sm:text-[54px]">
           Grazie mille{nome ? `, ${nome}` : ''}!
         </h2>
-        <p className="mt-2 text-2xl font-medium text-accent sm:text-3xl">
-          Buone Ferie ☀️
+        <p className="headline mt-2 text-3xl sm:text-[40px]">
+          <em>Buone Ferie</em> ☀️
         </p>
         <p className="mt-5 max-w-sm text-sm text-subtle">
           Il tuo agosto è pianificato. Potrai modificarlo quando vuoi.

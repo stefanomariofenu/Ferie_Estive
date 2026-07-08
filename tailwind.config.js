@@ -18,14 +18,14 @@ export default {
       },
       fontFamily: {
         sans: [
+          'Inter',
           '-apple-system',
           'BlinkMacSystemFont',
-          '"SF Pro Display"',
           '"SF Pro Text"',
-          'Inter',
           'system-ui',
           'sans-serif',
         ],
+        display: ['Fraunces', 'Georgia', 'serif'],
       },
       borderRadius: {
         card: '18px',

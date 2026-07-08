@@ -25,7 +25,9 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
       >
         <div className="mb-4 flex items-start justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-ink">Come funziona</h2>
+            <h2 className="headline text-[24px]">
+              Come <em>funziona</em>
+            </h2>
             <p className="text-sm text-subtle">Compilare il piano in 3 passi.</p>
           </div>
           <button onClick={onClose} className="btn-ghost !px-2" aria-label="Chiudi">

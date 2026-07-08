@@ -165,10 +165,10 @@ export function EmployeePage() {
 
       <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
         <section className="mb-6">
-          <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-[28px]">
-            Ciao {profile?.nome || ''} 👋
+          <h1 className="headline text-[30px] leading-tight sm:text-[38px]">
+            Ciao, <em>{profile?.nome || 'benvenuto'}</em>.
           </h1>
-          <p className="mt-1 max-w-xl text-sm text-subtle">
+          <p className="mt-2 max-w-xl text-sm text-subtle">
             Seleziona i giorni — anche{' '}
             <span className="font-medium text-ink">trascinando</span> — e
             colorali in blocco. Il periodo {SUGGESTED_START}–{SUGGESTED_END} è
