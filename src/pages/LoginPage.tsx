@@ -47,6 +47,23 @@ export function LoginPage() {
       return
     }
     setBusy(true)
+    // Allowlist: solo le email caricate dal team possono accedere.
+    const { data: allowed, error: rpcError } = await supabase.rpc(
+      'is_email_allowed',
+      { p_email: cleanEmail }
+    )
+    if (rpcError) {
+      setBusy(false)
+      setError('Verifica accesso non riuscita. Riprova tra poco.')
+      return
+    }
+    if (!allowed) {
+      setBusy(false)
+      setError(
+        'Questo indirizzo non è tra quelli autorizzati. Scrivi a sfenu@kpmg.it per essere aggiunto.'
+      )
+      return
+    }
     const ok = await sendCode()
     setBusy(false)
     if (ok) {
