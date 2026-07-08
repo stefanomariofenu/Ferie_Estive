@@ -30,6 +30,8 @@ export function LoginPage() {
       email: cleanEmail,
       options: {
         shouldCreateUser: true,
+        // Serve al login via LINK (email di default free): riporta all'app.
+        emailRedirectTo: window.location.origin,
         data: { nome: nomeCompleto, cognome: cognome.trim() },
       },
     })
