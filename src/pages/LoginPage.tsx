@@ -106,17 +106,15 @@ export function LoginPage() {
           </span>
         </div>
         <div className="relative">
-          <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan/90">
-            Ferie Estive 2026
+          <div className="text-[13px] font-semibold uppercase tracking-[0.34em] text-cyan/90">
+            Piano Ferie
           </div>
-          <h1 className="font-display mt-4 text-[64px] leading-[0.94] tracking-tight">
-            Agosto,<br />
-            pianificato<br />
-            <em className="italic">insieme.</em>
+          <h1 className="font-display mt-3 text-[92px] italic leading-[0.85] text-white">
+            Estivo
           </h1>
-          <p className="mt-5 max-w-xs text-[15px] text-white/70">
-            Il piano ferie del team, consolidato in un unico spazio.
-          </p>
+          <div className="font-display mt-2 text-[40px] leading-none tracking-tight text-white/55">
+            2026
+          </div>
         </div>
         <div className="relative text-[11px] uppercase tracking-[0.14em] text-white/50">
           Strumento interno · Uso riservato
