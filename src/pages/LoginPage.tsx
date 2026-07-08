@@ -1,54 +1,92 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
 import { Logo } from '../components/Logo'
 
 const ALLOWED_DOMAIN = '@kpmg.it'
+const CODE_LEN = 6
+
+type Step = 'form' | 'code'
 
 export function LoginPage() {
+  const [step, setStep] = useState<Step>('form')
   const [email, setEmail] = useState('')
   const [nome, setNome] = useState('')
   const [secondoNome, setSecondoNome] = useState('')
   const [cognome, setCognome] = useState('')
-  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const [code, setCode] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [resent, setResent] = useState(false)
   const [error, setError] = useState('')
+  const codeRef = useRef<HTMLInputElement>(null)
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    const clean = email.trim().toLowerCase()
+  const cleanEmail = email.trim().toLowerCase()
 
-    if (!clean.endsWith(ALLOWED_DOMAIN)) {
-      setError(`Usa il tuo indirizzo aziendale ${ALLOWED_DOMAIN}.`)
-      setStatus('error')
-      return
-    }
-
+  async function sendCode(): Promise<boolean> {
     // Nome completo = nome + eventuale secondo nome (es. "Stefano Mario").
-    const nomeCompleto = [nome.trim(), secondoNome.trim()]
-      .filter(Boolean)
-      .join(' ')
-
-    setStatus('sending')
-    setError('')
-    // Nome e cognome vengono passati come metadati: al primo accesso il
-    // trigger DB li usa per popolare public.users (l'email aziendale, es.
-    // mrossi@kpmg.it, non è sufficiente a ricavarli). Agli accessi
-    // successivi il profilo esiste già e questi valori vengono ignorati.
+    const nomeCompleto = [nome.trim(), secondoNome.trim()].filter(Boolean).join(' ')
+    // Metadati usati dal trigger DB al primo accesso per popolare public.users
+    // (l'email aziendale, es. mrossi@kpmg.it, non basta a ricavare nome/cognome).
     const { error: sbError } = await supabase.auth.signInWithOtp({
-      email: clean,
+      email: cleanEmail,
       options: {
-        emailRedirectTo: window.location.origin,
-        data: {
-          nome: nomeCompleto,
-          cognome: cognome.trim(),
-        },
+        shouldCreateUser: true,
+        data: { nome: nomeCompleto, cognome: cognome.trim() },
       },
     })
-
     if (sbError) {
       setError(sbError.message)
-      setStatus('error')
-    } else {
-      setStatus('sent')
+      return false
+    }
+    return true
+  }
+
+  async function handleRequest(e: FormEvent) {
+    e.preventDefault()
+    setError('')
+    if (!cleanEmail.endsWith(ALLOWED_DOMAIN)) {
+      setError(`Usa il tuo indirizzo aziendale ${ALLOWED_DOMAIN}.`)
+      return
+    }
+    setBusy(true)
+    const ok = await sendCode()
+    setBusy(false)
+    if (ok) {
+      setStep('code')
+      setTimeout(() => codeRef.current?.focus(), 50)
+    }
+  }
+
+  async function handleVerify(e: FormEvent) {
+    e.preventDefault()
+    setError('')
+    const token = code.trim()
+    if (token.length !== CODE_LEN) {
+      setError(`Inserisci il codice a ${CODE_LEN} cifre.`)
+      return
+    }
+    setBusy(true)
+    const { error: sbError } = await supabase.auth.verifyOtp({
+      email: cleanEmail,
+      token,
+      type: 'email',
+    })
+    setBusy(false)
+    if (sbError) {
+      setError('Codice non valido o scaduto. Controlla e riprova.')
+      setCode('')
+      codeRef.current?.focus()
+    }
+    // In caso di successo AuthContext rileva la sessione e reindirizza.
+  }
+
+  async function handleResend() {
+    setError('')
+    setBusy(true)
+    const ok = await sendCode()
+    setBusy(false)
+    if (ok) {
+      setResent(true)
+      setTimeout(() => setResent(false), 4000)
     }
   }
 
@@ -64,24 +102,68 @@ export function LoginPage() {
             </p>
           </div>
 
-          {status === 'sent' ? (
-            <div className="card animate-scale-in p-6 text-center">
-              <div className="mb-2 text-2xl" aria-hidden>📬</div>
-              <h2 className="text-base font-semibold text-ink">Controlla la posta</h2>
-              <p className="mt-1 text-sm text-subtle">
-                Ti abbiamo inviato un link di accesso a{' '}
-                <span className="font-medium text-ink">{email.trim().toLowerCase()}</span>.
-                Aprilo da questo dispositivo per entrare.
+          {step === 'code' ? (
+            <form onSubmit={handleVerify} className="card animate-scale-in p-6">
+              <div className="mb-1 text-center text-2xl" aria-hidden>
+                ✉️
+              </div>
+              <h2 className="text-center text-base font-semibold text-ink">
+                Inserisci il codice
+              </h2>
+              <p className="mx-auto mt-1 max-w-[18rem] text-center text-sm text-subtle">
+                Ti abbiamo inviato un codice a {CODE_LEN} cifre a{' '}
+                <span className="font-medium text-ink">{cleanEmail}</span>.
               </p>
+
+              <input
+                ref={codeRef}
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="[0-9]*"
+                maxLength={CODE_LEN}
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                placeholder="••••••"
+                className="mt-4 w-full rounded-2xl border border-black/5 bg-muted px-4 py-3 text-center text-2xl font-semibold tracking-[0.5em] text-ink outline-none transition focus:border-accent/40 focus:bg-surface"
+              />
+
+              {error && <p className="mt-2 text-sm text-bloccate-fg">{error}</p>}
+              {resent && (
+                <p className="mt-2 text-sm text-lavoro-fg">Nuovo codice inviato.</p>
+              )}
+
               <button
-                onClick={() => setStatus('idle')}
-                className="btn-ghost mx-auto mt-4"
+                type="submit"
+                disabled={busy || code.length !== CODE_LEN}
+                className="btn-primary mt-4 w-full"
               >
-                Usa un'altra email
+                {busy ? 'Verifica…' : 'Accedi'}
               </button>
-            </div>
+
+              <div className="mt-3 flex items-center justify-between text-xs text-subtle">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep('form')
+                    setCode('')
+                    setError('')
+                  }}
+                  className="hover:text-ink"
+                >
+                  ← Cambia email
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={busy}
+                  className="hover:text-ink disabled:opacity-50"
+                >
+                  Invia di nuovo
+                </button>
+              </div>
+            </form>
           ) : (
-            <form onSubmit={handleSubmit} className="card p-6">
+            <form onSubmit={handleRequest} className="card p-6">
               <div className="grid grid-cols-2 gap-3">
                 <label className="block text-sm font-medium text-ink">
                   Nome
@@ -140,20 +222,18 @@ export function LoginPage() {
                 correttamente nella lista del team.
               </p>
 
-              {status === 'error' && (
-                <p className="mt-2 text-sm text-bloccate-fg">{error}</p>
-              )}
+              {error && <p className="mt-2 text-sm text-bloccate-fg">{error}</p>}
 
               <button
                 type="submit"
-                disabled={status === 'sending'}
+                disabled={busy}
                 className="btn-primary mt-4 w-full"
               >
-                {status === 'sending' ? 'Invio in corso…' : 'Invia link di accesso'}
+                {busy ? 'Invio in corso…' : 'Invia codice di accesso'}
               </button>
 
               <p className="mt-3 text-center text-xs text-subtle">
-                Nessuna password: riceverai un magic link via email.
+                Nessuna password: riceverai un codice a {CODE_LEN} cifre via email.
               </p>
             </form>
           )}
