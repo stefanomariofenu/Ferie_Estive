@@ -6,6 +6,8 @@ const ALLOWED_DOMAIN = '@kpmg.it'
 
 export function LoginPage() {
   const [email, setEmail] = useState('')
+  const [nome, setNome] = useState('')
+  const [cognome, setCognome] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [error, setError] = useState('')
 
@@ -21,9 +23,19 @@ export function LoginPage() {
 
     setStatus('sending')
     setError('')
+    // Nome e cognome vengono passati come metadati: al primo accesso il
+    // trigger DB li usa per popolare public.users (l'email aziendale, es.
+    // mrossi@kpmg.it, non è sufficiente a ricavarli). Agli accessi
+    // successivi il profilo esiste già e questi valori vengono ignorati.
     const { error: sbError } = await supabase.auth.signInWithOtp({
       email: clean,
-      options: { emailRedirectTo: window.location.origin },
+      options: {
+        emailRedirectTo: window.location.origin,
+        data: {
+          nome: nome.trim(),
+          cognome: cognome.trim(),
+        },
+      },
     })
 
     if (sbError) {
@@ -70,7 +82,34 @@ export function LoginPage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="card p-6">
-              <label className="block text-sm font-medium text-ink">
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block text-sm font-medium text-ink">
+                  Nome
+                  <input
+                    type="text"
+                    autoComplete="given-name"
+                    required
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
+                    placeholder="Marco"
+                    className="mt-1.5 w-full rounded-2xl border border-black/5 bg-muted px-4 py-2.5 text-sm text-ink outline-none transition focus:border-accent/40 focus:bg-surface"
+                  />
+                </label>
+                <label className="block text-sm font-medium text-ink">
+                  Cognome
+                  <input
+                    type="text"
+                    autoComplete="family-name"
+                    required
+                    value={cognome}
+                    onChange={(e) => setCognome(e.target.value)}
+                    placeholder="Rossi"
+                    className="mt-1.5 w-full rounded-2xl border border-black/5 bg-muted px-4 py-2.5 text-sm text-ink outline-none transition focus:border-accent/40 focus:bg-surface"
+                  />
+                </label>
+              </div>
+
+              <label className="mt-3 block text-sm font-medium text-ink">
                 Email aziendale
                 <input
                   type="email"
@@ -82,6 +121,11 @@ export function LoginPage() {
                   className="mt-1.5 w-full rounded-2xl border border-black/5 bg-muted px-4 py-2.5 text-sm text-ink outline-none transition focus:border-accent/40 focus:bg-surface"
                 />
               </label>
+
+              <p className="mt-2 text-xs text-subtle">
+                Nome e cognome servono solo al primo accesso, per comparire
+                correttamente nella lista del team.
+              </p>
 
               {status === 'error' && (
                 <p className="mt-2 text-sm text-bloccate-fg">{error}</p>
