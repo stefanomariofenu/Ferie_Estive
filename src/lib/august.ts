@@ -71,6 +71,7 @@ export const TIPO_META: Record<
     label: string
     short: string
     emoji: string
+    desc: string
     bg: string
     fg: string
     solid: string
@@ -81,6 +82,7 @@ export const TIPO_META: Record<
     label: 'Lavoro',
     short: 'L',
     emoji: '💼',
+    desc: 'Giornata lavorativa normale',
     bg: '#D1F2DE',
     fg: '#1E8E4E',
     solid: '#34C759',
@@ -90,6 +92,7 @@ export const TIPO_META: Record<
     label: 'Ferie bloccate',
     short: 'B',
     emoji: '🏖️',
+    desc: 'Sei via e/o irreperibile',
     bg: '#FCE4D6',
     fg: '#C9622A',
     solid: '#FF9500',
@@ -99,6 +102,7 @@ export const TIPO_META: Record<
     label: 'Ferie flessibili',
     short: 'F',
     emoji: '🌤️',
+    desc: 'Per urgenze estreme ci si rende disponibili',
     bg: '#FFF6D6',
     fg: '#B8860B',
     solid: '#FFCC00',

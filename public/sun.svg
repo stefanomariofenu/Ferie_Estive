@@ -1,24 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
   <defs>
-    <linearGradient id="t" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0A57C2"/>
-      <stop offset="100%" stop-color="#002A73"/>
-    </linearGradient>
-    <linearGradient id="s" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#FFE08A"/>
-      <stop offset="100%" stop-color="#FFB020"/>
-    </linearGradient>
+    <radialGradient id="s" cx="38%" cy="34%" r="72%">
+      <stop offset="0%" stop-color="#FFD778"/>
+      <stop offset="55%" stop-color="#FFB020"/>
+      <stop offset="100%" stop-color="#FB8C00"/>
+    </radialGradient>
   </defs>
-  <rect x="1" y="1" width="46" height="46" rx="13" fill="url(#t)"/>
-  <g stroke="url(#s)" stroke-width="2" stroke-linecap="round">
-    <line x1="24" y1="12.5" x2="24" y2="9"/>
-    <line x1="24" y1="39" x2="24" y2="35.5"/>
-    <line x1="12.5" y1="24" x2="9" y2="24"/>
-    <line x1="39" y1="24" x2="35.5" y2="24"/>
-    <line x1="15.9" y1="15.9" x2="13.4" y2="13.4"/>
-    <line x1="34.6" y1="34.6" x2="32.1" y2="32.1"/>
-    <line x1="15.9" y1="32.1" x2="13.4" y2="34.6"/>
-    <line x1="34.6" y1="13.4" x2="32.1" y2="15.9"/>
+  <g stroke="#FFB020" stroke-width="2.2" stroke-linecap="round">
+    <line x1="20" y1="6.5" x2="20" y2="2"/>
+    <line x1="20" y1="38" x2="20" y2="33.5"/>
+    <line x1="6.5" y1="20" x2="2" y2="20"/>
+    <line x1="38" y1="20" x2="33.5" y2="20"/>
+    <line x1="10.5" y1="10.5" x2="7.3" y2="7.3"/>
+    <line x1="32.7" y1="32.7" x2="29.5" y2="29.5"/>
+    <line x1="10.5" y1="29.5" x2="7.3" y2="32.7"/>
+    <line x1="32.7" y1="7.3" x2="29.5" y2="10.5"/>
   </g>
-  <circle cx="24" cy="24" r="7.5" fill="url(#s)"/>
+  <circle cx="20" cy="20" r="9.5" fill="url(#s)"/>
 </svg>

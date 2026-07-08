@@ -181,38 +181,57 @@ function buildDashboardSheet(
 
 function buildDetailSheet(wb: ExcelJS.Workbook, agg: AggregateResult) {
   const ws = wb.addWorksheet('Dettaglio', {
-    views: [{ state: 'frozen', xSplit: 1, ySplit: 1 }],
+    views: [{ state: 'frozen', xSplit: 1, ySplit: 2 }],
   })
 
   const totCol = AUGUST_DAYS.length + 2 // colonna "Ferie (tot)"
+  const DATA_START = 3 // le prime 2 righe sono intestazione (numero + weekday)
 
-  // Intestazione: Dipendente + giorni 1..31 + Ferie tot
-  const head = ws.getRow(1)
-  head.height = 20
-  head.getCell(1).value = 'Dipendente'
+  // Riga 1: numero del giorno · Riga 2: giorno della settimana (Lun..Dom)
+  const r1 = ws.getRow(1)
+  const r2 = ws.getRow(2)
+  r1.height = 18
+  r2.height = 16
+
+  // Colonna "Dipendente" e "Ferie tot" occupano entrambe le righe di header.
+  ws.mergeCells(1, 1, 2, 1)
+  ws.mergeCells(1, totCol, 2, totCol)
+  ws.getCell(1, 1).value = 'Dipendente'
+  ws.getCell(1, totCol).value = 'Ferie tot'
+
   AUGUST_DAYS.forEach((day, i) => {
-    const cell = head.getCell(i + 2)
-    cell.value = day
-    cell.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: isWeekend(day) ? 'FF7A8AA8' : HEADER_FILL },
+    const col = i + 2
+    const weekend = isWeekend(day)
+    const numCell = r1.getCell(col)
+    const wdCell = r2.getCell(col)
+    numCell.value = day
+    wdCell.value = weekdayLabel(day) // Lun, Mar, ...
+    for (const cell of [numCell, wdCell]) {
+      cell.alignment = { horizontal: 'center', vertical: 'middle' }
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: weekend ? 'FF7A8AA8' : HEADER_FILL },
+      }
+      cell.border = ALL_BORDERS
     }
+    numCell.font = { bold: true, color: { argb: 'FFFFFFFF' } }
+    wdCell.font = { size: 9, color: { argb: 'FFD6DEEC' } }
   })
-  head.getCell(totCol).value = 'Ferie tot'
-  head.eachCell((cell) => {
-    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } }
-    cell.alignment = { horizontal: 'center', vertical: 'middle' }
-    if (!cell.fill || cell.fill.type !== 'pattern') {
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: HEADER_FILL } }
-    }
-    cell.border = ALL_BORDERS
-  })
-  head.getCell(1).alignment = { horizontal: 'left', vertical: 'middle' }
 
-  // Righe dipendenti con celle colorate
+  for (const cell of [ws.getCell(1, 1), ws.getCell(1, totCol)]) {
+    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } }
+    cell.alignment = {
+      horizontal: cell === ws.getCell(1, 1) ? 'left' : 'center',
+      vertical: 'middle',
+    }
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: HEADER_FILL } }
+    cell.border = ALL_BORDERS
+  }
+
+  // Righe dipendenti con celle colorate. Nome esteso: "Cognome Nome/i".
   agg.plans.forEach((p, idx) => {
-    const row = ws.getRow(idx + 2)
+    const row = ws.getRow(idx + DATA_START)
     row.getCell(1).value = `${p.user.cognome} ${p.user.nome}`
     if (!p.hasResponded) {
       row.getCell(1).font = { color: { argb: 'FFC0392B' }, italic: true }
@@ -243,7 +262,7 @@ function buildDetailSheet(wb: ExcelJS.Workbook, agg: AggregateResult) {
   })
 
   // Riga finale: conteggio "al lavoro" per giorno (verifica incrociata).
-  const totalRowIdx = agg.plans.length + 2
+  const totalRowIdx = agg.plans.length + DATA_START
   const totalRow = ws.getRow(totalRowIdx)
   totalRow.getCell(1).value = 'Al lavoro (tot)'
   totalRow.getCell(1).font = { bold: true }

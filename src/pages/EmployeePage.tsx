@@ -16,7 +16,6 @@ import { Header } from '../components/Header'
 import { SummaryBar } from '../components/SummaryBar'
 import { CalendarGrid } from '../components/CalendarGrid'
 import { SelectionBar } from '../components/SelectionBar'
-import { SunBurst } from '../components/SunBurst'
 import { CompletionOverlay } from '../components/CompletionOverlay'
 import { Spinner } from '../components/ui/Spinner'
 import { ErrorState } from '../components/ui/ErrorState'
@@ -30,7 +29,6 @@ export function EmployeePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
-  const [burst, setBurst] = useState(0)
   const [celebrate, setCelebrate] = useState(false)
 
   const load = useCallback(async () => {
@@ -110,8 +108,6 @@ export function EmployeePage() {
 
     if (nowComplete && !wasComplete) {
       setCelebrate(true)
-    } else if (tipo !== 'lavoro') {
-      setBurst((b) => b + 1)
     }
   }
 
@@ -160,7 +156,6 @@ export function EmployeePage() {
   return (
     <div className="min-h-screen summer-bg">
       <Header />
-      {burst > 0 && <SunBurst seed={burst} />}
       {celebrate && (
         <CompletionOverlay
           nome={profile?.nome || ''}
@@ -174,9 +169,10 @@ export function EmployeePage() {
             Ciao {profile?.nome || ''} 👋
           </h1>
           <p className="mt-1 max-w-xl text-sm text-subtle">
-            Seleziona i giorni — anche <span className="font-medium text-ink">trascinando</span>{' '}
-            — e colorali in blocco. Il periodo {SUGGESTED_START}–{SUGGESTED_END}{' '}
-            è quello consigliato da KPMG; sabato e domenica l'ufficio è chiuso.
+            Seleziona i giorni — anche{' '}
+            <span className="font-medium text-ink">trascinando</span> — e
+            colorali in blocco. Il periodo {SUGGESTED_START}–{SUGGESTED_END} è
+            quello caldamente consigliato da KPMG per le ferie.
           </p>
         </section>
 

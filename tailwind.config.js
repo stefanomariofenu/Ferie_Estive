@@ -57,9 +57,13 @@ export default {
           '60%': { opacity: '1', transform: 'scale(1.12) rotate(8deg)' },
           '100%': { opacity: '1', transform: 'scale(1) rotate(0deg)' },
         },
-        'spin-slow': {
-          '0%': { transform: 'rotate(0deg)' },
-          '100%': { transform: 'rotate(360deg)' },
+        rise: {
+          '0%': { opacity: '0', transform: 'translateY(18px) scale(0.98)' },
+          '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
+        cloud: {
+          '0%': { transform: 'translateX(var(--from, -30%))' },
+          '100%': { transform: 'translateX(112vw)' },
         },
       },
       animation: {
@@ -67,6 +71,8 @@ export default {
         'fade-in': 'fade-in 240ms ease',
         'scale-in': 'scale-in 220ms cubic-bezier(0.34, 1.56, 0.64, 1)',
         'sun-pop': 'sun-pop 700ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+        rise: 'rise 600ms cubic-bezier(0.22, 1, 0.36, 1) forwards',
+        cloud: 'cloud linear infinite',
       },
     },
   },

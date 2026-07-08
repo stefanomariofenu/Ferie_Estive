@@ -1,42 +1,58 @@
 import type { Tipo } from '../types'
 import { TIPO_META, TIPO_ORDER, WORKING_DAYS } from '../lib/august'
 
-/** Conteggi per tipo + completamento sui soli giorni lavorativi. */
+/** Conteggi per tipo, totale ferie e completamento sui giorni lavorativi. */
 export function SummaryBar({ counts }: { counts: Record<Tipo, number> }) {
   const total = WORKING_DAYS.length
   const marked = TIPO_ORDER.reduce((s, t) => s + counts[t], 0)
+  const totFerie = counts.ferie_bloccate + counts.ferie_flessibili
   const pct = total > 0 ? Math.round((marked / total) * 100) : 0
 
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      {TIPO_ORDER.map((t) => {
-        const meta = TIPO_META[t]
-        return (
-          <div key={t} className="card overflow-hidden p-4">
-            <div
-              className="mb-2 inline-flex h-6 items-center gap-1.5 rounded-full px-2.5 text-xs font-semibold"
-              style={{ backgroundColor: meta.bg, color: meta.fg }}
-            >
-              <span>{meta.emoji}</span>
-              {meta.label}
+    <div className="space-y-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {TIPO_ORDER.map((t) => {
+          const meta = TIPO_META[t]
+          return (
+            <div key={t} className="card p-4">
+              <div className="flex items-center justify-between">
+                <div
+                  className="inline-flex h-6 items-center gap-1.5 rounded-full px-2.5 text-xs font-semibold"
+                  style={{ backgroundColor: meta.bg, color: meta.fg }}
+                >
+                  <span>{meta.emoji}</span>
+                  {meta.label}
+                </div>
+                <span className="text-2xl font-semibold tabular-nums text-ink">
+                  {counts[t]}
+                </span>
+              </div>
+              <p className="mt-2 text-xs leading-snug text-subtle">{meta.desc}</p>
             </div>
-            <p className="text-3xl font-semibold tabular-nums text-ink">
-              {counts[t]}
-            </p>
-            <p className="text-xs text-subtle">giorni</p>
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
 
-      <div className="card col-span-2 flex items-center gap-4 p-4 lg:col-span-1">
-        <ProgressRing pct={pct} />
-        <div>
-          <p className="text-sm font-semibold text-ink">
-            {marked} / {total}
-          </p>
-          <p className="text-xs text-subtle">
-            giorni lavorativi compilati
-          </p>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="card flex items-center justify-between p-4">
+          <div>
+            <p className="text-xs font-medium text-subtle">Totale ferie</p>
+            <p className="text-3xl font-semibold tabular-nums text-ink">
+              {totFerie}
+            </p>
+            <p className="text-xs text-subtle">giorni (bloccate + flessibili)</p>
+          </div>
+          <div className="hidden text-3xl sm:block">🏖️</div>
+        </div>
+
+        <div className="card flex items-center gap-4 p-4">
+          <ProgressRing pct={pct} />
+          <div>
+            <p className="text-sm font-semibold text-ink">
+              {marked} / {total}
+            </p>
+            <p className="text-xs text-subtle">giorni lavorativi compilati</p>
+          </div>
         </div>
       </div>
     </div>

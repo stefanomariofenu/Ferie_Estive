@@ -7,6 +7,7 @@ const ALLOWED_DOMAIN = '@kpmg.it'
 export function LoginPage() {
   const [email, setEmail] = useState('')
   const [nome, setNome] = useState('')
+  const [secondoNome, setSecondoNome] = useState('')
   const [cognome, setCognome] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [error, setError] = useState('')
@@ -21,6 +22,11 @@ export function LoginPage() {
       return
     }
 
+    // Nome completo = nome + eventuale secondo nome (es. "Stefano Mario").
+    const nomeCompleto = [nome.trim(), secondoNome.trim()]
+      .filter(Boolean)
+      .join(' ')
+
     setStatus('sending')
     setError('')
     // Nome e cognome vengono passati come metadati: al primo accesso il
@@ -32,7 +38,7 @@ export function LoginPage() {
       options: {
         emailRedirectTo: window.location.origin,
         data: {
-          nome: nome.trim(),
+          nome: nomeCompleto,
           cognome: cognome.trim(),
         },
       },
@@ -85,23 +91,36 @@ export function LoginPage() {
                     required
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
-                    placeholder="Marco"
+                    placeholder="Stefano"
                     className="mt-1.5 w-full rounded-2xl border border-black/5 bg-muted px-4 py-2.5 text-sm text-ink outline-none transition focus:border-accent/40 focus:bg-surface"
                   />
                 </label>
                 <label className="block text-sm font-medium text-ink">
-                  Cognome
+                  Secondo nome{' '}
+                  <span className="font-normal text-subtle">(opz.)</span>
                   <input
                     type="text"
-                    autoComplete="family-name"
-                    required
-                    value={cognome}
-                    onChange={(e) => setCognome(e.target.value)}
-                    placeholder="Rossi"
+                    autoComplete="additional-name"
+                    value={secondoNome}
+                    onChange={(e) => setSecondoNome(e.target.value)}
+                    placeholder="Mario"
                     className="mt-1.5 w-full rounded-2xl border border-black/5 bg-muted px-4 py-2.5 text-sm text-ink outline-none transition focus:border-accent/40 focus:bg-surface"
                   />
                 </label>
               </div>
+
+              <label className="mt-3 block text-sm font-medium text-ink">
+                Cognome
+                <input
+                  type="text"
+                  autoComplete="family-name"
+                  required
+                  value={cognome}
+                  onChange={(e) => setCognome(e.target.value)}
+                  placeholder="Rossi"
+                  className="mt-1.5 w-full rounded-2xl border border-black/5 bg-muted px-4 py-2.5 text-sm text-ink outline-none transition focus:border-accent/40 focus:bg-surface"
+                />
+              </label>
 
               <label className="mt-3 block text-sm font-medium text-ink">
                 Email aziendale
