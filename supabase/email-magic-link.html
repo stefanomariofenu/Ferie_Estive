@@ -1,0 +1,56 @@
+<!--
+  Template email "Magic Link" per Ferie Agosto.
+  Da incollare in Supabase → Authentication → Emails → Magic Link (corpo HTML).
+  NON modificare la variabile {{ .ConfirmationURL }}: è il link di accesso.
+  Oggetto suggerito:  Il tuo accesso a Ferie Agosto ☀️
+-->
+<table width="100%" cellpadding="0" cellspacing="0" role="presentation"
+  style="background:#FAFAFA;padding:32px 0;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <tr>
+    <td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation"
+        style="max-width:460px;background:#FFFFFF;border-radius:18px;
+               box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;">
+        <tr>
+          <td style="padding:36px 40px 8px;text-align:center;">
+            <div style="font-size:34px;line-height:1;">☀️</div>
+            <h1 style="margin:16px 0 4px;font-size:20px;font-weight:600;color:#1D1D1F;">
+              Ferie Agosto
+            </h1>
+            <p style="margin:0;font-size:14px;color:#6E6E73;">Pianificazione ferie del team</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:16px 40px 8px;">
+            <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#1D1D1F;">
+              Ciao 👋<br />
+              ecco il tuo accesso a <strong>Ferie Agosto</strong>. Tocca il pulsante
+              qui sotto per entrare e sistemare il tuo piano di agosto.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:8px 40px 24px;text-align:center;">
+            <a href="{{ .ConfirmationURL }}"
+              style="display:inline-block;background:#0071E3;color:#FFFFFF;
+                     text-decoration:none;font-size:15px;font-weight:600;
+                     padding:13px 28px;border-radius:999px;">
+              Accedi a Ferie Agosto
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:0 40px 32px;">
+            <p style="margin:0;font-size:12px;line-height:1.6;color:#6E6E73;">
+              Il link vale una sola volta e scade a breve. Se non hai richiesto
+              tu l'accesso, ignora pure questa email.
+            </p>
+          </td>
+        </tr>
+      </table>
+      <p style="margin:20px 0 0;font-size:11px;color:#B0B0B5;">
+        Buone ferie ☀️ — dal team Ferie Agosto
+      </p>
+    </td>
+  </tr>
+</table>
