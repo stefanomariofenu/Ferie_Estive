@@ -2,6 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+/* --- Tipografia editoriale KPMG (self-hosted) --- */
+@font-face {
+  font-family: 'Instrument Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/instrument-sans.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Instrument Serif';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/instrument-serif.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Instrument Serif';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/instrument-serif-italic.woff2') format('woff2');
+}
+
 @layer base {
   html {
     -webkit-font-smoothing: antialiased;
@@ -38,20 +61,20 @@
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-accent
-      px-5 py-2.5 text-sm font-semibold text-white shadow-sm
+    @apply inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-accent
+      px-5 text-sm font-semibold text-white shadow-sm
       transition duration-200 ease-smooth hover:brightness-110
-      active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+      active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-full
+    @apply inline-flex items-center justify-center gap-2 rounded-lg
       px-4 py-2 text-sm font-medium text-subtle transition duration-200
       ease-smooth hover:bg-black/5 hover:text-ink;
   }
 
   .card {
-    @apply rounded-card bg-surface shadow-card ring-1 ring-black/[0.04];
+    @apply rounded-2xl bg-surface shadow-card ring-1 ring-black/[0.05];
   }
 
   /* Logo "Ferie Estive" con testo sfumato caldo */
@@ -70,17 +93,15 @@
     color: transparent;
   }
 
-  /* Titoli editoriali: serif con corsivo di carattere */
+  /* Titoli editoriali: serif Instrument con corsivo di carattere */
   .headline {
     @apply font-display tracking-tight text-ink;
-    font-optical-sizing: auto;
+    font-weight: 400;
+    letter-spacing: -0.01em;
   }
   .headline em {
     font-style: italic;
-    background: linear-gradient(100deg, #f59e0b 0%, #f97316 60%, #e8590c 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: #00338d;
   }
 }
 

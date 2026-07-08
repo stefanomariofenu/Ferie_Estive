@@ -37,13 +37,13 @@ export function AdminDashboard({
           label="Giorni scoperti"
           value={`${uncovered.length}`}
           sub={`su ${WORKING_DAYS.length} lavorativi`}
-          accent={uncovered.length > 0 ? '#FF9500' : '#34C759'}
+          accent={uncovered.length > 0 ? '#C6007E' : '#00A651'}
         />
         <StatTile
           label="Media al lavoro"
           value={`${avgAtWork}`}
           sub="persone / giorno"
-          accent="#34C759"
+          accent="#00A3E0"
         />
         <div className="card flex flex-col justify-center p-5">
           <label className="text-xs font-medium text-subtle">
@@ -80,7 +80,7 @@ export function AdminDashboard({
             {uncovered.map((c) => (
               <span
                 key={c.day}
-                className="inline-flex items-center gap-1.5 rounded-full bg-bloccate-bg px-3 py-1 text-xs font-semibold text-bloccate-fg"
+                className="inline-flex items-center gap-1.5 rounded-full bg-pink/10 px-3 py-1 text-xs font-semibold text-pink"
               >
                 {c.day} ago
                 <span className="rounded-full bg-white/60 px-1.5 tabular-nums">

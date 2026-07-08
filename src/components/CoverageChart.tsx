@@ -29,8 +29,8 @@ export function CoverageChart({ coverage, threshold }: CoverageChartProps) {
           </p>
         </div>
         <div className="flex items-center gap-3 text-xs text-subtle">
-          <Legend color="#34C759" label="coperto" />
-          <Legend color="#FF9500" label="scoperto" />
+          <Legend color="#005EB8" label="coperto" />
+          <Legend color="#C6007E" label="scoperto" />
           <Legend color="#E5E5EA" label="chiuso" />
         </div>
       </div>
@@ -72,15 +72,15 @@ export function CoverageChart({ coverage, threshold }: CoverageChartProps) {
                   style={{
                     height: `${Math.max(h, 4)}%`,
                     background: low
-                      ? 'linear-gradient(180deg,#FF9F45,#FF9500)'
-                      : 'linear-gradient(180deg,#5CD97A,#34C759)',
+                      ? 'linear-gradient(180deg,#E5379A,#C6007E)'
+                      : 'linear-gradient(180deg,#00A3E0,#005EB8)',
                     opacity: active ? 1 : 0.92,
                   }}
                 />
               </div>
               <span
                 className={`text-[9px] tabular-nums ${
-                  low ? 'font-bold text-bloccate-fg' : 'text-subtle'
+                  low ? 'font-bold text-pink' : 'text-subtle'
                 }`}
               >
                 {c.day}

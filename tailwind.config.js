@@ -4,28 +4,30 @@ export default {
   theme: {
     extend: {
       colors: {
-        canvas: '#FAFAFA',
+        canvas: '#F4F8FC',
         surface: '#FFFFFF',
-        muted: '#F5F5F7',
-        ink: '#1D1D1F',
-        subtle: '#6E6E73',
+        muted: '#EEF3FA',
+        ink: '#0B1C3A',
+        subtle: '#5A6B85',
         accent: '#00338D',
         'accent-soft': '#005EB8',
-        // Categorie ferie (pastello)
-        lavoro: { bg: '#D1F2DE', fg: '#1E8E4E' },
-        bloccate: { bg: '#FCE4D6', fg: '#C9622A' },
-        flessibili: { bg: '#FFF6D6', fg: '#B8860B' },
+        cyan: '#00A3E0',
+        pink: '#C6007E',
+        // Categorie ferie (chiave KPMG: neutro / blu / cyan)
+        lavoro: { bg: '#E9F0F8', fg: '#3C4C66' },
+        bloccate: { bg: '#00338D', fg: '#FFFFFF' },
+        flessibili: { bg: '#00A3E0', fg: '#06243B' },
       },
       fontFamily: {
         sans: [
-          'Inter',
+          '"Instrument Sans"',
           '-apple-system',
           'BlinkMacSystemFont',
-          '"SF Pro Text"',
+          '"Segoe UI"',
           'system-ui',
           'sans-serif',
         ],
-        display: ['Fraunces', 'Georgia', 'serif'],
+        display: ['"Instrument Serif"', 'Georgia', 'serif'],
       },
       borderRadius: {
         card: '18px',

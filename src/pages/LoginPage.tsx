@@ -1,6 +1,5 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
-import { Logo } from '../components/Logo'
 
 const ALLOWED_DOMAIN = '@kpmg.it'
 const CODE_LEN = 6
@@ -29,7 +28,6 @@ export function LoginPage() {
       email: cleanEmail,
       options: {
         shouldCreateUser: true,
-        // Serve al login via LINK (email di default free): riporta all'app.
         emailRedirectTo: window.location.origin,
         data: { nome: nomeCompleto, cognome: cognome.trim() },
       },
@@ -91,34 +89,53 @@ export function LoginPage() {
     }
   }
 
-  return (
-    <div className="flex min-h-screen flex-col summer-bg">
-      <main className="flex flex-1 items-center justify-center px-4 py-16">
-        <div className="w-full max-w-sm">
-          <div className="mb-8 flex flex-col items-center text-center">
-            <Logo size="lg" />
-            <p className="headline mt-6 text-[22px] leading-snug">
-              Il tuo agosto, <em>senza</em> file Excel.
-            </p>
-            <p className="mt-2 text-sm text-subtle">
-              Accedi con l'email aziendale e pianifica in un minuto.
-            </p>
-          </div>
+  const inputCls =
+    'w-full h-11 rounded-xl border border-black/10 bg-muted px-4 text-sm text-ink outline-none transition focus:border-cyan/60 focus:bg-surface'
+  const labelCls =
+    'block text-[11px] font-semibold uppercase tracking-[0.08em] text-subtle mb-2'
 
+  return (
+    <div className="grid min-h-screen lg:grid-cols-[1.05fr_1fr]">
+      {/* Blocco istituzionale */}
+      <div className="relative hidden overflow-hidden bg-gradient-to-br from-[#00204F] via-accent to-accent-soft p-14 text-white lg:flex lg:flex-col lg:justify-between">
+        <span className="pointer-events-none absolute -right-36 -top-32 h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle,rgba(0,163,224,.5),transparent_65%)]" />
+        <div className="relative flex items-baseline gap-2.5">
+          <span className="text-[20px] font-bold tracking-tight">KPMG</span>
+          <span className="text-[13px] font-light uppercase tracking-wide opacity-75">
+            PS &amp; HC
+          </span>
+        </div>
+        <div className="relative">
+          <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-cyan/90">
+            Ferie Estive 2026
+          </div>
+          <h1 className="font-display mt-4 text-[64px] leading-[0.94] tracking-tight">
+            Agosto,<br />
+            pianificato<br />
+            <em className="italic">insieme.</em>
+          </h1>
+          <p className="mt-5 max-w-xs text-[15px] text-white/70">
+            Il piano ferie del team, consolidato in un unico spazio.
+          </p>
+        </div>
+        <div className="relative text-[11px] uppercase tracking-[0.14em] text-white/50">
+          Strumento interno · Uso riservato
+        </div>
+      </div>
+
+      {/* Form */}
+      <div className="flex items-center justify-center bg-canvas px-6 py-14">
+        <div className="w-full max-w-sm">
           {step === 'code' ? (
-            <form onSubmit={handleVerify} className="card animate-scale-in p-6">
-              <div className="mb-1 text-center text-2xl" aria-hidden>
-                ✉️
-              </div>
-              <h2 className="text-center text-base font-semibold text-ink">
+            <form onSubmit={handleVerify} className="animate-fade-in">
+              <h2 className="font-display text-[32px] tracking-tight text-ink">
                 Inserisci il codice
               </h2>
-              <p className="mx-auto mt-1 max-w-[18rem] text-center text-sm text-subtle">
+              <p className="mt-2 text-sm text-subtle">
                 Ti abbiamo inviato un codice a {CODE_LEN} cifre a{' '}
-                <span className="font-medium text-ink">{cleanEmail}</span>.
-                In alternativa, apri il link nell'email da questo dispositivo.
+                <span className="font-medium text-ink">{cleanEmail}</span>. In
+                alternativa, apri il link nell'email da questo dispositivo.
               </p>
-
               <input
                 ref={codeRef}
                 inputMode="numeric"
@@ -128,23 +145,20 @@ export function LoginPage() {
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
                 placeholder="••••••"
-                className="mt-4 w-full rounded-2xl border border-black/5 bg-muted px-4 py-3 text-center text-2xl font-semibold tracking-[0.5em] text-ink outline-none transition focus:border-accent/40 focus:bg-surface"
+                className="mt-5 w-full rounded-xl border border-black/10 bg-muted px-4 py-3 text-center text-3xl font-semibold tracking-[0.5em] text-ink outline-none transition focus:border-cyan/60 focus:bg-surface"
               />
-
-              {error && <p className="mt-2 text-sm text-bloccate-fg">{error}</p>}
+              {error && <p className="mt-2 text-sm text-pink">{error}</p>}
               {resent && (
-                <p className="mt-2 text-sm text-lavoro-fg">Nuovo codice inviato.</p>
+                <p className="mt-2 text-sm text-cyan">Nuovo codice inviato.</p>
               )}
-
               <button
                 type="submit"
                 disabled={busy || code.length !== CODE_LEN}
-                className="btn-primary mt-4 w-full"
+                className="btn-primary mt-5 w-full"
               >
-                {busy ? 'Verifica…' : 'Accedi'}
+                {busy ? 'Verifica…' : 'Accedi al portale'}
               </button>
-
-              <div className="mt-3 flex items-center justify-between text-xs text-subtle">
+              <div className="mt-4 flex items-center justify-between text-xs text-subtle">
                 <button
                   type="button"
                   onClick={() => {
@@ -167,12 +181,21 @@ export function LoginPage() {
               </div>
             </form>
           ) : (
-            <form onSubmit={handleRequest} className="card p-6">
-              <label className="block text-sm font-medium text-ink">
-                Nome{' '}
-                <span className="font-normal text-subtle">
-                  (incluso il secondo nome)
-                </span>
+            <form onSubmit={handleRequest}>
+              <h2 className="font-display text-[32px] tracking-tight text-ink">
+                Accedi al portale
+              </h2>
+              <p className="mt-2 text-sm text-subtle">
+                Inserisci l'email aziendale per entrare.
+              </p>
+
+              <div className="mt-6">
+                <label className={labelCls}>
+                  Nome{' '}
+                  <span className="font-normal normal-case tracking-normal text-subtle">
+                    (incluso il secondo nome)
+                  </span>
+                </label>
                 <input
                   type="text"
                   autoComplete="given-name"
@@ -180,12 +203,11 @@ export function LoginPage() {
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
                   placeholder="Mario Enrico"
-                  className="mt-1.5 w-full rounded-2xl border border-black/5 bg-muted px-4 py-2.5 text-sm text-ink outline-none transition focus:border-accent/40 focus:bg-surface"
+                  className={inputCls}
                 />
-              </label>
-
-              <label className="mt-3 block text-sm font-medium text-ink">
-                Cognome
+              </div>
+              <div className="mt-4">
+                <label className={labelCls}>Cognome</label>
                 <input
                   type="text"
                   autoComplete="family-name"
@@ -193,12 +215,11 @@ export function LoginPage() {
                   value={cognome}
                   onChange={(e) => setCognome(e.target.value)}
                   placeholder="Rossi"
-                  className="mt-1.5 w-full rounded-2xl border border-black/5 bg-muted px-4 py-2.5 text-sm text-ink outline-none transition focus:border-accent/40 focus:bg-surface"
+                  className={inputCls}
                 />
-              </label>
-
-              <label className="mt-3 block text-sm font-medium text-ink">
-                Email aziendale
+              </div>
+              <div className="mt-4">
+                <label className={labelCls}>Email aziendale</label>
                 <input
                   type="email"
                   autoComplete="email"
@@ -206,32 +227,26 @@ export function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="mrossi@kpmg.it"
-                  className="mt-1.5 w-full rounded-2xl border border-black/5 bg-muted px-4 py-2.5 text-sm text-ink outline-none transition focus:border-accent/40 focus:bg-surface"
+                  className={inputCls}
                 />
-              </label>
+              </div>
 
-              <p className="mt-2 text-xs text-subtle">
-                Nome e cognome servono solo al primo accesso, per comparire
-                correttamente nella lista del team.
-              </p>
-
-              {error && <p className="mt-2 text-sm text-bloccate-fg">{error}</p>}
+              {error && <p className="mt-3 text-sm text-pink">{error}</p>}
 
               <button
                 type="submit"
                 disabled={busy}
-                className="btn-primary mt-4 w-full"
+                className="btn-primary mt-6 w-full"
               >
                 {busy ? 'Invio in corso…' : 'Invia codice di accesso'}
               </button>
-
               <p className="mt-3 text-center text-xs text-subtle">
                 Nessuna password: riceverai un codice a {CODE_LEN} cifre via email.
               </p>
             </form>
           )}
         </div>
-      </main>
+      </div>
     </div>
   )
 }
