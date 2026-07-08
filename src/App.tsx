@@ -1,8 +1,10 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
+import { isSupabaseConfigured } from './lib/supabase'
 import { LoginPage } from './pages/LoginPage'
 import { EmployeePage } from './pages/EmployeePage'
 import { AdminPage } from './pages/AdminPage'
+import { ConfigNotice } from './components/ConfigNotice'
 import { Spinner } from './components/ui/Spinner'
 
 function AppRoutes() {
@@ -37,6 +39,12 @@ function AppRoutes() {
 }
 
 export default function App() {
+  // Se il deploy non è ancora collegato a Supabase, mostra la guida di setup
+  // invece di tentare (e fallire) l'autenticazione con una pagina bianca.
+  if (!isSupabaseConfigured) {
+    return <ConfigNotice />
+  }
+
   return (
     <BrowserRouter>
       <AppRoutes />
