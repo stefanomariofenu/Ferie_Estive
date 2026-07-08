@@ -1,51 +1,33 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { ThemeToggle } from './ThemeToggle'
+import { Logo } from './Logo'
 
 export function Header() {
   const { profile, isAdmin, signOut } = useAuth()
   const { pathname } = useLocation()
 
   return (
-    <header className="sticky top-0 z-30 border-b border-black/5 bg-canvas/80 backdrop-blur-md">
+    <header className="sticky top-0 z-30 border-b border-black/5 bg-white/70 backdrop-blur-xl">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="text-lg" aria-hidden>☀️</span>
-            <span className="text-[15px] font-semibold tracking-tight text-ink">
-              Ferie Agosto
-            </span>
+        <div className="flex items-center gap-4">
+          <Link to="/" aria-label="Ferie Estive 2026">
+            <Logo />
           </Link>
           {isAdmin && (
-            <nav className="ml-2 hidden items-center gap-1 sm:flex">
-              <Link
-                to="/"
-                className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
-                  pathname === '/'
-                    ? 'bg-muted text-ink'
-                    : 'text-subtle hover:text-ink'
-                }`}
-              >
+            <nav className="ml-1 hidden items-center gap-1 rounded-full bg-black/[0.04] p-1 sm:flex">
+              <NavLink to="/" active={pathname === '/'}>
                 Il mio piano
-              </Link>
-              <Link
-                to="/admin"
-                className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
-                  pathname === '/admin'
-                    ? 'bg-muted text-ink'
-                    : 'text-subtle hover:text-ink'
-                }`}
-              >
-                Vista admin
-              </Link>
+              </NavLink>
+              <NavLink to="/admin" active={pathname === '/admin'}>
+                Dashboard
+              </NavLink>
             </nav>
           )}
         </div>
 
         <div className="flex items-center gap-1.5">
-          <ThemeToggle />
           {profile && (
-            <span className="hidden text-sm text-subtle md:inline">
+            <span className="hidden text-sm font-medium text-subtle md:inline">
               {profile.nome} {profile.cognome}
             </span>
           )}
@@ -55,5 +37,26 @@ export function Header() {
         </div>
       </div>
     </header>
+  )
+}
+
+function NavLink({
+  to,
+  active,
+  children,
+}: {
+  to: string
+  active: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <Link
+      to={to}
+      className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
+        active ? 'bg-white text-ink shadow-sm' : 'text-subtle hover:text-ink'
+      }`}
+    >
+      {children}
+    </Link>
   )
 }

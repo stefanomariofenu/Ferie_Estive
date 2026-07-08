@@ -13,20 +13,12 @@
     line-height: 1.6;
   }
 
-  /* Focus visibile per accessibilità da tastiera */
   :focus-visible {
-    outline: 2px solid #0071e3;
+    outline: 2px solid #00338d;
     outline-offset: 2px;
-    border-radius: 6px;
+    border-radius: 8px;
   }
 
-  /* Riduci le transizioni globali in modalità "Essenziale" */
-  [data-theme='essenziale'] * {
-    animation-duration: 0.01ms !important;
-    transition-duration: 60ms !important;
-  }
-
-  /* Rispetta le preferenze di sistema per il movimento ridotto */
   @media (prefers-reduced-motion: reduce) {
     * {
       animation-duration: 0.01ms !important;
@@ -36,6 +28,15 @@
 }
 
 @layer components {
+  /* Sfondo "estivo": luce calda in alto, cielo terso, tutto molto tenue */
+  .summer-bg {
+    background:
+      radial-gradient(120% 80% at 85% -10%, rgba(255, 204, 0, 0.16), transparent 55%),
+      radial-gradient(110% 70% at 0% 0%, rgba(0, 113, 227, 0.08), transparent 50%),
+      linear-gradient(180deg, #ffffff 0%, #fafafa 40%, #f5f7fa 100%);
+    background-attachment: fixed;
+  }
+
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-full bg-accent
       px-5 py-2.5 text-sm font-semibold text-white shadow-sm
@@ -46,10 +47,28 @@
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 rounded-full
       px-4 py-2 text-sm font-medium text-subtle transition duration-200
-      ease-smooth hover:bg-muted hover:text-ink;
+      ease-smooth hover:bg-black/5 hover:text-ink;
   }
 
   .card {
-    @apply rounded-card bg-surface shadow-card;
+    @apply rounded-card bg-surface shadow-card ring-1 ring-black/[0.04];
+  }
+
+  /* Logo "Ferie Estive" con testo sfumato caldo */
+  .brand-gradient {
+    background: linear-gradient(120deg, #ff9500 0%, #ff375f 45%, #00338d 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+@layer utilities {
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+  /* Le celle del calendario non devono attivare lo scroll durante il drag */
+  .no-touch-scroll {
+    touch-action: none;
   }
 }

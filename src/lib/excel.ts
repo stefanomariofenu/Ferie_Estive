@@ -4,11 +4,15 @@ import {
   AUGUST_DAYS,
   TIPO_META,
   YEAR,
+  isWeekend,
   weekdayLabel,
 } from './august'
 
 const RED_FILL = 'FFF8D0D0'
-const HEADER_FILL = 'FF1D1D1F'
+const HEADER_FILL = 'FF00338D' // Blu KPMG ufficiale
+const WEEKEND_FILL = 'FFF0F0F2'
+const THIN = { style: 'thin' as const, color: { argb: 'FFE5E5EA' } }
+const ALL_BORDERS = { top: THIN, left: THIN, bottom: THIN, right: THIN }
 
 interface ExportOptions {
   expected: number
@@ -56,9 +60,9 @@ function buildDashboardSheet(
   const pct = expected > 0 ? Math.round((agg.respondedCount / expected) * 100) : 0
 
   // Titolo
-  ws.mergeCells('A1:E1')
+  ws.mergeCells('A1:F1')
   const title = ws.getCell('A1')
-  title.value = `Pianificazione ferie · Agosto ${YEAR}`
+  title.value = `Ferie Estive ${YEAR} · KPMG PS & HC`
   title.font = { size: 16, bold: true, color: { argb: 'FF1D1D1F' } }
   ws.getRow(1).height = 26
 
@@ -70,7 +74,7 @@ function buildDashboardSheet(
     ['Soglia minima copertura', threshold],
     [
       'Giorni scoperti (sotto soglia)',
-      agg.coverage.filter((c) => c.lavoro < threshold).length,
+      agg.coverage.filter((c) => !c.closed && c.lavoro < threshold).length,
     ],
   ]
   let r = 3
@@ -112,12 +116,30 @@ function buildDashboardSheet(
     const row = ws.getRow(tableHead + 1 + idx)
     row.getCell(1).value = `${c.day} ago`
     row.getCell(2).value = weekdayLabel(c.day)
+    row.alignment = { horizontal: 'center' }
+
+    if (c.closed) {
+      // Weekend: ufficio chiuso, non conteggiato.
+      ws.mergeCells(
+        `C${tableHead + 1 + idx}:F${tableHead + 1 + idx}`
+      )
+      row.getCell(3).value = 'Chiuso (weekend)'
+      for (let col = 1; col <= 6; col++) {
+        row.getCell(col).fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: WEEKEND_FILL },
+        }
+        row.getCell(col).font = { color: { argb: 'FF9A9AA0' }, italic: true }
+      }
+      return
+    }
+
     row.getCell(3).value = c.lavoro
     row.getCell(4).value = c.ferie_bloccate
     row.getCell(5).value = c.ferie_flessibili
     row.getCell(6).value = c.non_compilato
-    row.alignment = { horizontal: 'center' }
-    // Evidenzia in rosso i giorni sotto soglia
+    // Evidenzia in rosso i giorni lavorativi sotto soglia
     if (c.lavoro < threshold) {
       for (let col = 1; col <= 6; col++) {
         row.getCell(col).fill = {
@@ -162,48 +184,62 @@ function buildDetailSheet(wb: ExcelJS.Workbook, agg: AggregateResult) {
     views: [{ state: 'frozen', xSplit: 1, ySplit: 1 }],
   })
 
-  // Intestazione: Dipendente + giorni 1..31
+  const totCol = AUGUST_DAYS.length + 2 // colonna "Ferie (tot)"
+
+  // Intestazione: Dipendente + giorni 1..31 + Ferie tot
   const head = ws.getRow(1)
+  head.height = 20
   head.getCell(1).value = 'Dipendente'
-  head.getCell(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }
-  head.getCell(1).fill = {
-    type: 'pattern',
-    pattern: 'solid',
-    fgColor: { argb: HEADER_FILL },
-  }
   AUGUST_DAYS.forEach((day, i) => {
     const cell = head.getCell(i + 2)
     cell.value = day
-    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } }
-    cell.alignment = { horizontal: 'center' }
     cell.fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: HEADER_FILL },
+      fgColor: { argb: isWeekend(day) ? 'FF7A8AA8' : HEADER_FILL },
     }
   })
+  head.getCell(totCol).value = 'Ferie tot'
+  head.eachCell((cell) => {
+    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } }
+    cell.alignment = { horizontal: 'center', vertical: 'middle' }
+    if (!cell.fill || cell.fill.type !== 'pattern') {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: HEADER_FILL } }
+    }
+    cell.border = ALL_BORDERS
+  })
+  head.getCell(1).alignment = { horizontal: 'left', vertical: 'middle' }
 
   // Righe dipendenti con celle colorate
   agg.plans.forEach((p, idx) => {
     const row = ws.getRow(idx + 2)
     row.getCell(1).value = `${p.user.cognome} ${p.user.nome}`
+    if (!p.hasResponded) {
+      row.getCell(1).font = { color: { argb: 'FFC0392B' }, italic: true }
+    }
+    let ferieTot = 0
     AUGUST_DAYS.forEach((day, i) => {
       const cell = row.getCell(i + 2)
-      const tipo = p.byDay[day]
       cell.alignment = { horizontal: 'center' }
+      cell.border = ALL_BORDERS
+      if (isWeekend(day)) {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: WEEKEND_FILL } }
+        return
+      }
+      const tipo = p.byDay[day]
       if (tipo) {
         const meta = TIPO_META[tipo]
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: meta.excelFill },
-        }
-        // Sigla: L / B / F
-        cell.value =
-          tipo === 'lavoro' ? 'L' : tipo === 'ferie_bloccate' ? 'B' : 'F'
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: meta.excelFill } }
+        cell.value = meta.short
         cell.font = { size: 9, color: { argb: 'FF6E6E73' } }
+        if (tipo !== 'lavoro') ferieTot++
       }
     })
+    const tc = row.getCell(totCol)
+    tc.value = ferieTot
+    tc.alignment = { horizontal: 'center' }
+    tc.font = { bold: true }
+    tc.border = ALL_BORDERS
   })
 
   // Riga finale: conteggio "al lavoro" per giorno (verifica incrociata).
@@ -211,23 +247,47 @@ function buildDetailSheet(wb: ExcelJS.Workbook, agg: AggregateResult) {
   const totalRow = ws.getRow(totalRowIdx)
   totalRow.getCell(1).value = 'Al lavoro (tot)'
   totalRow.getCell(1).font = { bold: true }
+  totalRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFF2F7' } }
   AUGUST_DAYS.forEach((day, i) => {
     const c = agg.coverage.find((x) => x.day === day)!
     const cell = totalRow.getCell(i + 2)
-    cell.value = c.lavoro
-    cell.font = { bold: true }
+    cell.value = c.closed ? '—' : c.lavoro
+    cell.font = { bold: true, color: { argb: c.closed ? 'FFB0B0B5' : 'FF1D1D1F' } }
     cell.alignment = { horizontal: 'center' }
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFF2F7' } }
+    cell.border = ALL_BORDERS
   })
 
-  // Legenda
+  // Legenda colorata in basso
   const legendRow = totalRowIdx + 2
-  ws.getCell(`A${legendRow}`).value =
-    'Legenda: L = Lavoro · B = Ferie bloccate · F = Ferie flessibili'
-  ws.getCell(`A${legendRow}`).font = { italic: true, color: { argb: 'FF6E6E73' } }
+  ws.getCell(`A${legendRow}`).value = 'Legenda:'
+  ws.getCell(`A${legendRow}`).font = { bold: true, color: { argb: 'FF6E6E73' } }
+  ;[
+    ['lavoro', 'L — Lavoro'],
+    ['ferie_bloccate', 'B — Ferie bloccate'],
+    ['ferie_flessibili', 'F — Ferie flessibili'],
+  ].forEach(([tipo, label], i) => {
+    const r = legendRow + 1 + i
+    const swatch = ws.getCell(`A${r}`)
+    swatch.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: TIPO_META[tipo as keyof typeof TIPO_META].excelFill },
+    }
+    swatch.border = ALL_BORDERS
+    ws.getCell(`B${r}`).value = label
+    ws.getCell(`B${r}`).font = { color: { argb: 'FF6E6E73' } }
+  })
+  const wr = legendRow + 4
+  ws.getCell(`A${wr}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: WEEKEND_FILL } }
+  ws.getCell(`A${wr}`).border = ALL_BORDERS
+  ws.getCell(`B${wr}`).value = 'Weekend — ufficio chiuso'
+  ws.getCell(`B${wr}`).font = { color: { argb: 'FF6E6E73' } }
 
   ws.columns = [
-    { width: 24 },
+    { width: 26 },
     ...AUGUST_DAYS.map(() => ({ width: 4 })),
+    { width: 10 },
   ]
 }
 
@@ -258,9 +318,11 @@ function renderCoverageChartPng(
   const padB = 50
   const plotW = W - padL - padR
   const plotH = H - padT - padB
-  const max = Math.max(1, ...agg.coverage.map((c) => c.lavoro))
-  const n = agg.coverage.length
-  const gap = 6
+  // Solo giorni lavorativi: i weekend (ufficio chiuso) non entrano nel grafico.
+  const work = agg.coverage.filter((c) => !c.closed)
+  const max = Math.max(1, ...work.map((c) => c.lavoro))
+  const n = work.length
+  const gap = 8
   const barW = (plotW - gap * (n - 1)) / n
 
   // Assi + gridlines
@@ -279,19 +341,16 @@ function renderCoverageChartPng(
     ctx.fillText(String(val), 20, y + 6)
   }
 
-  // Barre
-  agg.coverage.forEach((c, i) => {
+  // Barre (solo giorni lavorativi)
+  work.forEach((c, i) => {
     const x = padL + i * (barW + gap)
     const h = (c.lavoro / max) * plotH
     const y = padT + plotH - h
-    ctx.fillStyle = c.lavoro < threshold ? '#C9622A' : '#1E8E4E'
+    ctx.fillStyle = c.lavoro < threshold ? '#FF9500' : '#34C759'
     ctx.fillRect(x, y, barW, h)
-    // Etichette giorno (ogni 2 per non affollare)
-    if (c.day % 2 === 1) {
-      ctx.fillStyle = '#6E6E73'
-      ctx.font = '16px -apple-system, sans-serif'
-      ctx.fillText(String(c.day), x + barW / 2 - 6, H - padB + 24)
-    }
+    ctx.fillStyle = '#6E6E73'
+    ctx.font = '15px -apple-system, sans-serif'
+    ctx.fillText(String(c.day), x + barW / 2 - 7, H - padB + 24)
   })
 
   return canvas.toDataURL('image/png')

@@ -9,7 +9,8 @@ export default {
         muted: '#F5F5F7',
         ink: '#1D1D1F',
         subtle: '#6E6E73',
-        accent: '#0071E3',
+        accent: '#00338D',
+        'accent-soft': '#005EB8',
         // Categorie ferie (pastello)
         lavoro: { bg: '#D1F2DE', fg: '#1E8E4E' },
         bloccate: { bg: '#FCE4D6', fg: '#C9622A' },
@@ -38,9 +39,10 @@ export default {
       },
       keyframes: {
         'sun-fall': {
-          '0%': { transform: 'translateY(-14px) rotate(0deg)', opacity: '0' },
-          '20%': { opacity: '1' },
-          '100%': { transform: 'translateY(18px) rotate(28deg)', opacity: '0' },
+          '0%': { transform: 'translateY(-8vh) rotate(0deg)', opacity: '0' },
+          '15%': { opacity: '1' },
+          '90%': { opacity: '1' },
+          '100%': { transform: 'translateY(105vh) rotate(220deg)', opacity: '0' },
         },
         'fade-in': {
           '0%': { opacity: '0', transform: 'translateY(4px)' },
@@ -50,11 +52,21 @@ export default {
           '0%': { opacity: '0', transform: 'scale(0.97)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
         },
+        'sun-pop': {
+          '0%': { opacity: '0', transform: 'scale(0.3) rotate(-40deg)' },
+          '60%': { opacity: '1', transform: 'scale(1.12) rotate(8deg)' },
+          '100%': { opacity: '1', transform: 'scale(1) rotate(0deg)' },
+        },
+        'spin-slow': {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
+        },
       },
       animation: {
         'sun-fall': 'sun-fall 1100ms ease-out forwards',
         'fade-in': 'fade-in 240ms ease',
-        'scale-in': 'scale-in 200ms cubic-bezier(0.4, 0, 0.2, 1)',
+        'scale-in': 'scale-in 220ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'sun-pop': 'sun-pop 700ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
       },
     },
   },

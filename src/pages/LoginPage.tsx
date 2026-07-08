@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
-import { ThemeToggle } from '../components/ThemeToggle'
+import { Logo } from '../components/Logo'
 
 const ALLOWED_DOMAIN = '@kpmg.it'
 
@@ -47,20 +47,14 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-canvas">
-      <div className="flex justify-end p-4">
-        <ThemeToggle />
-      </div>
-
-      <main className="flex flex-1 items-center justify-center px-4 pb-24">
+    <div className="flex min-h-screen flex-col summer-bg">
+      <main className="flex flex-1 items-center justify-center px-4 py-16">
         <div className="w-full max-w-sm">
-          <div className="mb-8 text-center">
-            <div className="mb-4 text-4xl" aria-hidden>☀️</div>
-            <h1 className="text-2xl font-semibold tracking-tight text-ink">
-              Ferie Agosto
-            </h1>
-            <p className="mt-1 text-sm text-subtle">
-              Pianifica il tuo mese di agosto. Accedi con l'email aziendale.
+          <div className="mb-8 flex flex-col items-center text-center">
+            <Logo size="lg" />
+            <p className="mt-4 text-sm text-subtle">
+              Pianifica le tue ferie estive. Accedi con l'email aziendale
+              per iniziare.
             </p>
           </div>
 
@@ -117,7 +111,7 @@ export function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder={`nome.cognome${ALLOWED_DOMAIN}`}
+                  placeholder="mrossi@kpmg.it"
                   className="mt-1.5 w-full rounded-2xl border border-black/5 bg-muted px-4 py-2.5 text-sm text-ink outline-none transition focus:border-accent/40 focus:bg-surface"
                 />
               </label>

@@ -1,5 +1,5 @@
 import type { AppUser, CalendarEntry, EmployeePlan, Tipo } from '../types'
-import { AUGUST_DAYS, dayFromISO } from './august'
+import { AUGUST_DAYS, dayFromISO, isWeekend } from './august'
 
 export interface DayCoverage {
   day: number
@@ -8,6 +8,8 @@ export interface DayCoverage {
   ferie_flessibili: number
   /** Persone che NON hanno marcato quel giorno. */
   non_compilato: number
+  /** Weekend: ufficio chiuso, escluso dai conteggi di copertura. */
+  closed: boolean
 }
 
 export interface AggregateResult {
@@ -56,6 +58,7 @@ export function buildAggregate(
       ferie_bloccate: 0,
       ferie_flessibili: 0,
       non_compilato: 0,
+      closed: isWeekend(day),
     }
     for (const p of plans) {
       const t = p.byDay[day]

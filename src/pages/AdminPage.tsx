@@ -64,16 +64,17 @@ export function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-canvas">
+    <div className="min-h-screen summer-bg">
       <Header />
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight text-ink sm:text-2xl">
-              Vista admin · Agosto
+            <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-[28px]">
+              Dashboard del team
             </h1>
             <p className="mt-1 text-sm text-subtle">
-              Piano consolidato del team. Copertura giorno per giorno ed export.
+              Piano consolidato di agosto 2026 · copertura giorno per giorno,
+              giorni critici ed export.
             </p>
           </div>
           <button

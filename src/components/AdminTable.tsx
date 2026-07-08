@@ -88,6 +88,13 @@ export function AdminTable({ agg }: AdminTableProps) {
                   )}
                 </td>
                 {AUGUST_DAYS.map((day) => {
+                  if (isWeekend(day)) {
+                    return (
+                      <td key={day} className="p-[2px]">
+                        <div className="mx-auto h-6 w-6 rounded-md border border-dashed border-black/10 bg-black/[0.015]" />
+                      </td>
+                    )
+                  }
                   const tipo = p.byDay[day]
                   const dim = filtro !== 'tutti' && tipo !== filtro
                   const meta = tipo ? TIPO_META[tipo] : null
