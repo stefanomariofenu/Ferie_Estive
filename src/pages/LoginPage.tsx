@@ -113,6 +113,7 @@ export function LoginPage() {
               <p className="mx-auto mt-1 max-w-[18rem] text-center text-sm text-subtle">
                 Ti abbiamo inviato un codice a {CODE_LEN} cifre a{' '}
                 <span className="font-medium text-ink">{cleanEmail}</span>.
+                In alternativa, apri il link nell'email da questo dispositivo.
               </p>
 
               <input
