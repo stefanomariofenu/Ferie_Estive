@@ -1,6 +1,7 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { KpmgMark } from '../components/Logo'
 
 const ALLOWED_DOMAIN = '@kpmg.it'
 const CODE_LEN = 6
@@ -163,8 +164,8 @@ export function LoginPage() {
       {/* Blocco istituzionale */}
       <div className="relative hidden overflow-hidden bg-gradient-to-br from-[#00204F] via-accent to-accent-soft p-14 text-white lg:flex lg:flex-col lg:justify-between">
         <span className="pointer-events-none absolute -right-36 -top-32 h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle,rgba(0,163,224,.5),transparent_65%)]" />
-        <div className="relative flex items-baseline gap-2.5">
-          <span className="text-[20px] font-bold tracking-tight">KPMG</span>
+        <div className="relative flex items-center gap-3">
+          <KpmgMark variant="white" className="h-6 w-auto" />
           <span className="text-[13px] font-light uppercase tracking-wide opacity-75">
             PS &amp; HC
           </span>
