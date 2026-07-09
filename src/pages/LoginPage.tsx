@@ -68,13 +68,31 @@ export function LoginPage() {
       password: SHARED_ACCESS_KEY,
     })
     if (signIn.error) {
+      const signInMsg = signIn.error.message.toLowerCase()
+      // Account in attesa di conferma (residuo di test precedenti): non
+      // riprovare con signUp, darebbe "User already registered".
+      if (signInMsg.includes('not confirmed') || signInMsg.includes('confirm')) {
+        setBusy(false)
+        setError(
+          'Account in attesa di conferma. Scrivi a sfenu@kpmg.it o pmelzi@kpmg.it per lo sblocco.'
+        )
+        return
+      }
+      // Credenziali non valide = account non ancora esistente → crealo.
       const signUp = await supabase.auth.signUp({
         email: cleanEmail,
         password: SHARED_ACCESS_KEY,
       })
       if (signUp.error) {
+        const signUpMsg = signUp.error.message.toLowerCase()
         setBusy(false)
-        setError('Accesso non riuscito: ' + signUp.error.message)
+        if (signUpMsg.includes('already registered')) {
+          setError(
+            'Account già presente ma non accessibile. Scrivi a sfenu@kpmg.it o pmelzi@kpmg.it per lo sblocco.'
+          )
+        } else {
+          setError('Accesso non riuscito: ' + signUp.error.message)
+        }
         return
       }
       userId = signUp.data.user?.id
