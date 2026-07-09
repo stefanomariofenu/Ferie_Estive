@@ -1,5 +1,6 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../context/AuthContext'
 
 const ALLOWED_DOMAIN = '@kpmg.it'
 const CODE_LEN = 6
@@ -11,6 +12,7 @@ const DIRECT_LOGIN_EMAILS = ['sfenu@kpmg.it']
 type Step = 'form' | 'code' | 'password'
 
 export function LoginPage() {
+  const { refreshProfile } = useAuth()
   const [step, setStep] = useState<Step>('form')
   const [email, setEmail] = useState('')
   const [nome, setNome] = useState('')
@@ -115,17 +117,29 @@ export function LoginPage() {
       return
     }
     setBusy(true)
-    const { error: sbError } = await supabase.auth.signInWithPassword({
+    const { data, error: sbError } = await supabase.auth.signInWithPassword({
       email: cleanEmail,
       password,
     })
-    setBusy(false)
     if (sbError) {
+      setBusy(false)
       setError('Email o password non corretti.')
       setPassword('')
       pwdRef.current?.focus()
+      return
     }
-    // In caso di successo AuthContext rileva la sessione e reindirizza.
+    // Allinea il profilo al nome/cognome digitati nel form, così il saluto
+    // mostra "Stefano Mario" e non la parte dell'email.
+    const nomeCompleto = nome.trim().replace(/\s+/g, ' ')
+    if (data.user && (nomeCompleto || cognome.trim())) {
+      await supabase
+        .from('users')
+        .update({ nome: nomeCompleto, cognome: cognome.trim() })
+        .eq('id', data.user.id)
+      await refreshProfile()
+    }
+    setBusy(false)
+    // AuthContext rileva la sessione e reindirizza.
   }
 
   async function handleResend() {

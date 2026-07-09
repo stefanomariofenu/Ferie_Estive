@@ -83,7 +83,7 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
             >
               {SUPPORT_EMAIL}
             </a>{' '}
-            e ti diamo una mano.
+            per richiedere supporto.
           </p>
         </div>
 
