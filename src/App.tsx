@@ -2,13 +2,14 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import { isSupabaseConfigured } from './lib/supabase'
 import { LoginPage } from './pages/LoginPage'
+import { OnboardingPage } from './pages/OnboardingPage'
 import { EmployeePage } from './pages/EmployeePage'
 import { AdminPage } from './pages/AdminPage'
 import { ConfigNotice } from './components/ConfigNotice'
 import { Spinner } from './components/ui/Spinner'
 
 function AppRoutes() {
-  const { session, loading, isAdmin } = useAuth()
+  const { session, profile, loading, isAdmin } = useAuth()
 
   if (loading) {
     return (
@@ -24,6 +25,11 @@ function AppRoutes() {
         <Route path="*" element={<LoginPage />} />
       </Routes>
     )
+  }
+
+  // Primo accesso: profilo senza cognome -> completa nome e cognome.
+  if (profile && !profile.cognome?.trim()) {
+    return <OnboardingPage />
   }
 
   return (

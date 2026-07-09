@@ -3,11 +3,13 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Logo } from './Logo'
 import { HelpModal } from './HelpModal'
+import { ProfileModal } from './ProfileModal'
 
 export function Header() {
   const { profile, isAdmin, signOut } = useAuth()
   const { pathname } = useLocation()
   const [help, setHelp] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
 
   return (
     <>
@@ -39,9 +41,13 @@ export function Header() {
               </Link>
             )}
             {profile && (
-              <span className="mr-1 hidden text-sm font-medium text-subtle md:inline">
+              <button
+                onClick={() => setProfileOpen(true)}
+                className="mr-1 hidden rounded-lg px-2 py-1 text-sm font-medium text-subtle transition hover:bg-black/5 hover:text-ink md:inline-block"
+                title="Modifica i tuoi dati"
+              >
                 {profile.nome} {profile.cognome}
-              </span>
+              </button>
             )}
             <button
               onClick={() => setHelp(true)}
@@ -62,6 +68,7 @@ export function Header() {
         </div>
       </header>
       {help && <HelpModal onClose={() => setHelp(false)} />}
+      {profileOpen && <ProfileModal onClose={() => setProfileOpen(false)} />}
     </>
   )
 }

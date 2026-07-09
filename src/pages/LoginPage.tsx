@@ -4,110 +4,32 @@ import { useAuth } from '../context/AuthContext'
 import { KpmgMark } from '../components/Logo'
 
 const ALLOWED_DOMAIN = '@kpmg.it'
-const CODE_LEN = 6
 
-// Accessi "diretti" (con password, senza codice via email): utili come
-// bootstrap finché non si definisce il metodo di accesso per tutti.
-const DIRECT_LOGIN_EMAILS = ['sfenu@kpmg.it']
+// Account amministratori (ruolo admin assegnato automaticamente al login).
+const ADMIN_EMAILS = ['sfenu@kpmg.it']
 
-type Step = 'form' | 'code' | 'password'
+type Step = 'email' | 'password'
 
 export function LoginPage() {
   const { refreshProfile } = useAuth()
-  const [step, setStep] = useState<Step>('form')
+  const [step, setStep] = useState<Step>('email')
   const [email, setEmail] = useState('')
-  const [nome, setNome] = useState('')
-  const [cognome, setCognome] = useState('')
-  const [code, setCode] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
-  const [resent, setResent] = useState(false)
   const [error, setError] = useState('')
-  const codeRef = useRef<HTMLInputElement>(null)
   const pwdRef = useRef<HTMLInputElement>(null)
 
   const cleanEmail = email.trim().toLowerCase()
 
-  async function sendCode(): Promise<boolean> {
-    // Il campo Nome include eventuali secondi nomi (es. "Mario Enrico").
-    const nomeCompleto = nome.trim().replace(/\s+/g, ' ')
-    // Metadati usati dal trigger DB al primo accesso per popolare public.users
-    // (l'email aziendale, es. mrossi@kpmg.it, non basta a ricavare nome/cognome).
-    const { error: sbError } = await supabase.auth.signInWithOtp({
-      email: cleanEmail,
-      options: {
-        shouldCreateUser: true,
-        emailRedirectTo: window.location.origin,
-        data: { nome: nomeCompleto, cognome: cognome.trim() },
-      },
-    })
-    if (sbError) {
-      setError(sbError.message)
-      return false
-    }
-    return true
-  }
-
-  async function handleRequest(e: FormEvent) {
+  function handleEmail(e: FormEvent) {
     e.preventDefault()
     setError('')
     if (!cleanEmail.endsWith(ALLOWED_DOMAIN)) {
       setError(`Usa il tuo indirizzo aziendale ${ALLOWED_DOMAIN}.`)
       return
     }
-    // Accesso diretto con password (bootstrap): salta il codice via email.
-    if (DIRECT_LOGIN_EMAILS.includes(cleanEmail)) {
-      setStep('password')
-      setTimeout(() => pwdRef.current?.focus(), 50)
-      return
-    }
-    setBusy(true)
-    // Allowlist: solo le email caricate dal team possono accedere.
-    const { data: allowed, error: rpcError } = await supabase.rpc(
-      'is_email_allowed',
-      { p_email: cleanEmail }
-    )
-    if (rpcError) {
-      setBusy(false)
-      setError('Verifica accesso non riuscita. Riprova tra poco.')
-      return
-    }
-    if (!allowed) {
-      setBusy(false)
-      setError(
-        'Questo indirizzo non è tra quelli autorizzati. Scrivi a sfenu@kpmg.it per essere aggiunto.'
-      )
-      return
-    }
-    const ok = await sendCode()
-    setBusy(false)
-    if (ok) {
-      setStep('code')
-      setTimeout(() => codeRef.current?.focus(), 50)
-    }
-  }
-
-  async function handleVerify(e: FormEvent) {
-    e.preventDefault()
-    setError('')
-    const token = code.trim()
-    if (token.length !== CODE_LEN) {
-      setError(`Inserisci il codice a ${CODE_LEN} cifre.`)
-      return
-    }
-    setBusy(true)
-    const { error: sbError } = await supabase.auth.verifyOtp({
-      email: cleanEmail,
-      token,
-      type: 'email',
-    })
-    setBusy(false)
-    if (sbError) {
-      setError('Codice non valido o scaduto. Controlla e riprova.')
-      setCode('')
-      codeRef.current?.focus()
-    }
-    // In caso di successo AuthContext rileva la sessione e reindirizza.
+    setStep('password')
+    setTimeout(() => pwdRef.current?.focus(), 50)
   }
 
   async function handlePassword(e: FormEvent) {
@@ -129,34 +51,14 @@ export function LoginPage() {
       pwdRef.current?.focus()
       return
     }
-    // L'accesso con password è riservato agli account bootstrap
-    // (DIRECT_LOGIN_EMAILS): allinea nome/cognome e assegna ruolo admin,
-    // così la Dashboard è subito visibile senza SQL manuale.
-    const nomeCompleto = nome.trim().replace(/\s+/g, ' ')
-    if (data.user) {
-      await supabase
-        .from('users')
-        .update({
-          nome: nomeCompleto || undefined,
-          cognome: cognome.trim() || undefined,
-          ruolo: 'admin',
-        })
-        .eq('id', data.user.id)
+    // Ruolo admin automatico per gli account amministratori.
+    if (data.user && ADMIN_EMAILS.includes(cleanEmail)) {
+      await supabase.from('users').update({ ruolo: 'admin' }).eq('id', data.user.id)
       await refreshProfile()
     }
     setBusy(false)
-    // AuthContext rileva la sessione e reindirizza.
-  }
-
-  async function handleResend() {
-    setError('')
-    setBusy(true)
-    const ok = await sendCode()
-    setBusy(false)
-    if (ok) {
-      setResent(true)
-      setTimeout(() => setResent(false), 4000)
-    }
+    // AuthContext rileva la sessione: se il profilo è incompleto parte
+    // l'onboarding (nome/cognome), altrimenti si entra nel portale.
   }
 
   const inputCls =
@@ -180,7 +82,7 @@ export function LoginPage() {
             Piano Ferie
           </div>
           <h1 className="font-display mt-3 text-[92px] italic leading-[0.85] text-white">
-            Estivo
+            Estate
           </h1>
           <div className="font-display mt-2 text-[40px] leading-none tracking-tight text-white/55">
             2026
@@ -197,10 +99,10 @@ export function LoginPage() {
           {step === 'password' ? (
             <form onSubmit={handlePassword} className="animate-fade-in">
               <h2 className="font-display text-[32px] tracking-tight text-ink">
-                Accesso diretto
+                Inserisci la password
               </h2>
               <p className="mt-2 text-sm text-subtle">
-                Inserisci la password per{' '}
+                Accesso per{' '}
                 <span className="font-medium text-ink">{cleanEmail}</span>.
               </p>
               <div className="mt-6">
@@ -221,12 +123,12 @@ export function LoginPage() {
                 disabled={busy || !password}
                 className="btn-primary mt-6 w-full"
               >
-                {busy ? 'Accesso…' : 'Accedi al portale'}
+                {busy ? 'Accesso…' : 'Accedi'}
               </button>
               <button
                 type="button"
                 onClick={() => {
-                  setStep('form')
+                  setStep('email')
                   setPassword('')
                   setError('')
                 }}
@@ -235,123 +137,31 @@ export function LoginPage() {
                 ← Cambia email
               </button>
             </form>
-          ) : step === 'code' ? (
-            <form onSubmit={handleVerify} className="animate-fade-in">
-              <h2 className="font-display text-[32px] tracking-tight text-ink">
-                Inserisci il codice
-              </h2>
-              <p className="mt-2 text-sm text-subtle">
-                Ti abbiamo inviato un codice a {CODE_LEN} cifre a{' '}
-                <span className="font-medium text-ink">{cleanEmail}</span>. In
-                alternativa, apri il link nell'email da questo dispositivo.
-              </p>
-              <input
-                ref={codeRef}
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                pattern="[0-9]*"
-                maxLength={CODE_LEN}
-                value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                placeholder="••••••"
-                className="mt-5 w-full rounded-xl border border-black/10 bg-muted px-4 py-3 text-center text-3xl font-semibold tracking-[0.5em] text-ink outline-none transition focus:border-cyan/60 focus:bg-surface"
-              />
-              {error && <p className="mt-2 text-sm text-pink">{error}</p>}
-              {resent && (
-                <p className="mt-2 text-sm text-cyan">Nuovo codice inviato.</p>
-              )}
-              <button
-                type="submit"
-                disabled={busy || code.length !== CODE_LEN}
-                className="btn-primary mt-5 w-full"
-              >
-                {busy ? 'Verifica…' : 'Accedi al portale'}
-              </button>
-              <div className="mt-4 flex items-center justify-between text-xs text-subtle">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStep('form')
-                    setCode('')
-                    setError('')
-                  }}
-                  className="hover:text-ink"
-                >
-                  ← Cambia email
-                </button>
-                <button
-                  type="button"
-                  onClick={handleResend}
-                  disabled={busy}
-                  className="hover:text-ink disabled:opacity-50"
-                >
-                  Invia di nuovo
-                </button>
-              </div>
-            </form>
           ) : (
-            <form onSubmit={handleRequest}>
+            <form onSubmit={handleEmail}>
               <h2 className="font-display text-[32px] tracking-tight text-ink">
-                Accedi al portale
+                Entra con la tua email
               </h2>
               <p className="mt-2 text-sm text-subtle">
-                Inserisci l'email aziendale per entrare.
+                Inserisci l'email aziendale KPMG per accedere al portale.
               </p>
-
               <div className="mt-6">
-                <label className={labelCls}>
-                  Nome{' '}
-                  <span className="font-normal normal-case tracking-normal text-subtle">
-                    (incluso il secondo nome)
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  autoComplete="given-name"
-                  required
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                  placeholder="Mario Enrico"
-                  className={inputCls}
-                />
-              </div>
-              <div className="mt-4">
-                <label className={labelCls}>Cognome</label>
-                <input
-                  type="text"
-                  autoComplete="family-name"
-                  required
-                  value={cognome}
-                  onChange={(e) => setCognome(e.target.value)}
-                  placeholder="Rossi"
-                  className={inputCls}
-                />
-              </div>
-              <div className="mt-4">
                 <label className={labelCls}>Email aziendale</label>
                 <input
                   type="email"
                   autoComplete="email"
                   required
+                  autoFocus
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="mrossi@kpmg.it"
+                  placeholder="arossi@kpmg.it"
                   className={inputCls}
                 />
               </div>
-
               {error && <p className="mt-3 text-sm text-pink">{error}</p>}
-
-              <button
-                type="submit"
-                disabled={busy}
-                className="btn-primary mt-6 w-full"
-              >
-                {busy ? 'Invio in corso…' : 'Invia codice di accesso'}
+              <button type="submit" disabled={busy} className="btn-primary mt-6 w-full">
+                Accedi
               </button>
-              <p className="mt-3 text-center text-xs text-subtle">
-                Nessuna password: riceverai un codice a {CODE_LEN} cifre via email.
-              </p>
             </form>
           )}
         </div>
