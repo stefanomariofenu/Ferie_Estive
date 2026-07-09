@@ -55,32 +55,10 @@ export function LoginPage() {
       setError(`Usa il tuo indirizzo aziendale ${ALLOWED_DOMAIN}.`)
       return
     }
-    // Accesso diretto SENZA password (bootstrap): sessione istantanea.
+    // Accesso diretto con password (bootstrap): salta il codice via email.
     if (DIRECT_LOGIN_EMAILS.includes(cleanEmail)) {
-      setBusy(true)
-      const { data, error: anonErr } = await supabase.auth.signInAnonymously()
-      if (anonErr || !data.user) {
-        setBusy(false)
-        setError(
-          'Accesso non riuscito. Abilita "Anonymous sign-ins" su Supabase (Authentication → Providers).'
-        )
-        return
-      }
-      const nomeCompleto = nome.trim().replace(/\s+/g, ' ') || 'Stefano Mario'
-      const { error: upErr } = await supabase.from('users').upsert({
-        id: data.user.id,
-        email: cleanEmail,
-        nome: nomeCompleto,
-        cognome: cognome.trim() || 'Fenu',
-        ruolo: 'admin',
-      })
-      if (upErr) {
-        setBusy(false)
-        setError('Profilo non creato: ' + upErr.message)
-        return
-      }
-      await refreshProfile()
-      setBusy(false)
+      setStep('password')
+      setTimeout(() => pwdRef.current?.focus(), 50)
       return
     }
     setBusy(true)
