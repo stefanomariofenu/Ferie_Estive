@@ -5,8 +5,15 @@ import { KpmgMark } from '../components/Logo'
 
 const ALLOWED_DOMAIN = '@kpmg.it'
 
-// Account amministratori (ruolo admin assegnato automaticamente al login).
+// Account amministratori: entrano con password propria (ruolo admin
+// assegnato automaticamente al login).
 const ADMIN_EMAILS = ['sfenu@kpmg.it', 'pmelzi@kpmg.it']
+
+// Accesso "senza password" per i collaboratori in lista: l'app usa una
+// credenziale condivisa (invisibile all'utente). Chi è nel roster entra
+// digitando solo la propria email. Nota pilota: chiunque conosca un'email
+// in lista potrebbe entrare — accettabile per uno strumento interno.
+const SHARED_ACCESS_KEY = 'FerieEstive-2026-PS&HC'
 
 type Step = 'email' | 'password'
 
@@ -21,15 +28,76 @@ export function LoginPage() {
 
   const cleanEmail = email.trim().toLowerCase()
 
-  function handleEmail(e: FormEvent) {
+  async function handleEmail(e: FormEvent) {
     e.preventDefault()
     setError('')
     if (!cleanEmail.endsWith(ALLOWED_DOMAIN)) {
       setError(`Usa il tuo indirizzo aziendale ${ALLOWED_DOMAIN}.`)
       return
     }
-    setStep('password')
-    setTimeout(() => pwdRef.current?.focus(), 50)
+    // Admin: password propria.
+    if (ADMIN_EMAILS.includes(cleanEmail)) {
+      setStep('password')
+      setTimeout(() => pwdRef.current?.focus(), 50)
+      return
+    }
+
+    setBusy(true)
+    // Solo le email in lista (roster) possono entrare.
+    const { data: allowed, error: rpcErr } = await supabase.rpc(
+      'is_email_allowed',
+      { p_email: cleanEmail }
+    )
+    if (rpcErr) {
+      setBusy(false)
+      setError('Verifica accesso non riuscita. Riprova tra poco.')
+      return
+    }
+    if (!allowed) {
+      setBusy(false)
+      setError(
+        'Questa email non è abilitata. Scrivi a sfenu@kpmg.it o pmelzi@kpmg.it.'
+      )
+      return
+    }
+
+    // Accesso: prova a entrare; se l'account non esiste ancora, lo crea.
+    let userId: string | undefined
+    const signIn = await supabase.auth.signInWithPassword({
+      email: cleanEmail,
+      password: SHARED_ACCESS_KEY,
+    })
+    if (signIn.error) {
+      const signUp = await supabase.auth.signUp({
+        email: cleanEmail,
+        password: SHARED_ACCESS_KEY,
+      })
+      if (signUp.error) {
+        setBusy(false)
+        setError('Accesso non riuscito: ' + signUp.error.message)
+        return
+      }
+      userId = signUp.data.user?.id
+    } else {
+      userId = signIn.data.user?.id
+    }
+
+    // Popola nome/cognome dal roster (così "Ciao, {nome}" e niente onboarding).
+    if (userId) {
+      const { data: r } = await supabase
+        .from('allowed_emails')
+        .select('nome, cognome')
+        .eq('email', cleanEmail)
+        .maybeSingle()
+      if (r && (r.nome || r.cognome)) {
+        await supabase
+          .from('users')
+          .update({ nome: r.nome ?? '', cognome: r.cognome ?? '' })
+          .eq('id', userId)
+      }
+      await refreshProfile()
+    }
+    setBusy(false)
   }
 
   async function handlePassword(e: FormEvent) {
