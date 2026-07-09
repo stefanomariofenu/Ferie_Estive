@@ -9,28 +9,21 @@ const ALLOWED_DOMAIN = '@kpmg.it'
 // assegnato automaticamente al login).
 const ADMIN_EMAILS = ['sfenu@kpmg.it', 'pmelzi@kpmg.it']
 
-// Credenziale condivisa usata SOLO per migrare gli account creati nella
-// fase pilota (senza codice personale) verso il nuovo codice scelto
-// dall'utente. Non viene mai mostrata né richiesta.
-const LEGACY_SHARED_KEY = 'FerieEstive-2026-PS&HC'
+// Accesso "senza password" per i collaboratori in lista: l'app usa una
+// credenziale condivisa (invisibile all'utente). Chi è nel roster entra
+// digitando solo la propria email.
+const SHARED_ACCESS_KEY = 'FerieEstive-2026-PS&HC'
 
-const MIN_PIN = 6
-
-type Step = 'email' | 'password' | 'pin'
-type PinMode = 'create' | 'enter'
+type Step = 'email' | 'password'
 
 export function LoginPage() {
   const { refreshProfile } = useAuth()
   const [step, setStep] = useState<Step>('email')
-  const [pinMode, setPinMode] = useState<PinMode>('create')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [pin, setPin] = useState('')
-  const [pin2, setPin2] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const pwdRef = useRef<HTMLInputElement>(null)
-  const pinRef = useRef<HTMLInputElement>(null)
 
   const cleanEmail = email.trim().toLowerCase()
 
@@ -67,93 +60,42 @@ export function LoginPage() {
       return
     }
 
-    // Primo accesso (crea codice) o accesso successivo (inserisci codice)?
-    const { data: activated, error: actErr } = await supabase.rpc(
-      'is_activated',
-      { p_email: cleanEmail }
-    )
-    setBusy(false)
-    if (actErr) {
-      setError('Verifica accesso non riuscita. Riprova tra poco.')
-      return
-    }
-    setPin('')
-    setPin2('')
-    setPinMode(activated ? 'enter' : 'create')
-    setStep('pin')
-    setTimeout(() => pinRef.current?.focus(), 50)
-  }
-
-  async function handlePin(e: FormEvent) {
-    e.preventDefault()
-    setError('')
-    if (pin.length < MIN_PIN) {
-      setError(`Il codice personale deve avere almeno ${MIN_PIN} caratteri.`)
-      return
-    }
-    if (pinMode === 'create' && pin !== pin2) {
-      setError('I due codici non coincidono.')
-      return
-    }
-    setBusy(true)
-
-    // Accesso successivo: verifica il codice.
-    if (pinMode === 'enter') {
-      const signIn = await supabase.auth.signInWithPassword({
-        email: cleanEmail,
-        password: pin,
-      })
-      setBusy(false)
-      if (signIn.error) {
-        setError(
-          'Codice non corretto. Se non lo ricordi, scrivi a sfenu@kpmg.it o pmelzi@kpmg.it.'
-        )
-        setPin('')
-        pinRef.current?.focus()
-        return
-      }
-      await refreshProfile()
-      return
-    }
-
-    // Primo accesso: crea l'account con il codice scelto.
-    const signUp = await supabase.auth.signUp({
+    // Accesso: prova a entrare; se l'account non esiste ancora, lo crea.
+    const signIn = await supabase.auth.signInWithPassword({
       email: cleanEmail,
-      password: pin,
+      password: SHARED_ACCESS_KEY,
     })
-    if (signUp.error) {
-      const m = signUp.error.message.toLowerCase()
-      if (m.includes('already registered')) {
-        // Account creato in fase pilota (chiave condivisa): migralo al
-        // codice appena scelto, così l'utente lo userà d'ora in poi.
-        const legacy = await supabase.auth.signInWithPassword({
-          email: cleanEmail,
-          password: LEGACY_SHARED_KEY,
-        })
-        if (!legacy.error) {
-          await supabase.auth.updateUser({ password: pin })
-          await supabase.rpc('mark_activated')
-          await refreshProfile()
-          setBusy(false)
-          return
-        }
-        // Non migrabile: qualcuno l'ha già attivato con un altro codice.
+    if (signIn.error) {
+      const signInMsg = signIn.error.message.toLowerCase()
+      // Account in attesa di conferma (residuo di test precedenti).
+      if (signInMsg.includes('not confirmed') || signInMsg.includes('confirm')) {
         setBusy(false)
         setError(
-          'Questo account risulta già attivato. Inserisci il tuo codice; se non lo ricordi scrivi a sfenu@kpmg.it o pmelzi@kpmg.it.'
+          'Account in attesa di conferma. Scrivi a sfenu@kpmg.it o pmelzi@kpmg.it per lo sblocco.'
         )
-        setPinMode('enter')
-        setPin('')
-        setPin2('')
-        pinRef.current?.focus()
         return
       }
-      setBusy(false)
-      setError('Attivazione non riuscita: ' + signUp.error.message)
-      return
+      // Credenziali non valide = account non ancora esistente → crealo.
+      const signUp = await supabase.auth.signUp({
+        email: cleanEmail,
+        password: SHARED_ACCESS_KEY,
+      })
+      if (signUp.error) {
+        const signUpMsg = signUp.error.message.toLowerCase()
+        setBusy(false)
+        if (signUpMsg.includes('already registered')) {
+          setError(
+            'Account già presente ma non accessibile. Scrivi a sfenu@kpmg.it o pmelzi@kpmg.it per lo sblocco.'
+          )
+        } else {
+          setError('Accesso non riuscito: ' + signUp.error.message)
+        }
+        return
+      }
     }
-    // Account creato: marca l'email come attivata e entra.
-    await supabase.rpc('mark_activated')
+
+    // Il nome/cognome viene allineato al roster da AuthContext al caricamento
+    // del profilo (onAuthStateChange), quindi qui basta aggiornare.
     await refreshProfile()
     setBusy(false)
   }
@@ -199,14 +141,6 @@ export function LoginPage() {
   const labelCls =
     'block text-[11px] font-semibold uppercase tracking-[0.08em] text-subtle mb-2'
 
-  function backToEmail() {
-    setStep('email')
-    setPassword('')
-    setPin('')
-    setPin2('')
-    setError('')
-  }
-
   return (
     <div className="grid min-h-screen lg:grid-cols-[1.05fr_1fr]">
       {/* Blocco istituzionale */}
@@ -237,77 +171,7 @@ export function LoginPage() {
       {/* Form */}
       <div className="flex items-center justify-center bg-canvas px-6 py-14">
         <div className="w-full max-w-sm">
-          {step === 'pin' ? (
-            <form onSubmit={handlePin} className="animate-fade-in">
-              <h2 className="font-display text-[32px] tracking-tight text-ink">
-                {pinMode === 'create'
-                  ? 'Crea il tuo codice'
-                  : 'Inserisci il tuo codice'}
-              </h2>
-              <p className="mt-2 text-sm text-subtle">
-                {pinMode === 'create' ? (
-                  <>
-                    Primo accesso per{' '}
-                    <span className="font-medium text-ink">{cleanEmail}</span>.
-                    Scegli un codice personale (min {MIN_PIN} caratteri): ti
-                    servirà per rientrare e protegge il tuo piano.
-                  </>
-                ) : (
-                  <>
-                    Bentornato. Inserisci il codice personale scelto al primo
-                    accesso per{' '}
-                    <span className="font-medium text-ink">{cleanEmail}</span>.
-                  </>
-                )}
-              </p>
-              <div className="mt-6">
-                <label className={labelCls}>Codice personale</label>
-                <input
-                  ref={pinRef}
-                  type="password"
-                  autoComplete={
-                    pinMode === 'create' ? 'new-password' : 'current-password'
-                  }
-                  value={pin}
-                  onChange={(e) => setPin(e.target.value)}
-                  placeholder="••••••••"
-                  className={inputCls}
-                />
-              </div>
-              {pinMode === 'create' && (
-                <div className="mt-4">
-                  <label className={labelCls}>Ripeti il codice</label>
-                  <input
-                    type="password"
-                    autoComplete="new-password"
-                    value={pin2}
-                    onChange={(e) => setPin2(e.target.value)}
-                    placeholder="••••••••"
-                    className={inputCls}
-                  />
-                </div>
-              )}
-              {error && <p className="mt-3 text-sm text-pink">{error}</p>}
-              <button
-                type="submit"
-                disabled={busy || !pin}
-                className="btn-primary mt-6 w-full"
-              >
-                {busy
-                  ? 'Attendi…'
-                  : pinMode === 'create'
-                    ? 'Crea e accedi'
-                    : 'Accedi'}
-              </button>
-              <button
-                type="button"
-                onClick={backToEmail}
-                className="mt-4 text-xs text-subtle hover:text-ink"
-              >
-                ← Cambia email
-              </button>
-            </form>
-          ) : step === 'password' ? (
+          {step === 'password' ? (
             <form onSubmit={handlePassword} className="animate-fade-in">
               <h2 className="font-display text-[32px] tracking-tight text-ink">
                 Inserisci la password
@@ -338,7 +202,11 @@ export function LoginPage() {
               </button>
               <button
                 type="button"
-                onClick={backToEmail}
+                onClick={() => {
+                  setStep('email')
+                  setPassword('')
+                  setError('')
+                }}
                 className="mt-4 text-xs text-subtle hover:text-ink"
               >
                 ← Cambia email
@@ -367,7 +235,7 @@ export function LoginPage() {
               </div>
               {error && <p className="mt-3 text-sm text-pink">{error}</p>}
               <button type="submit" disabled={busy} className="btn-primary mt-6 w-full">
-                {busy ? 'Attendi…' : 'Continua'}
+                {busy ? 'Attendi…' : 'Accedi'}
               </button>
             </form>
           )}
