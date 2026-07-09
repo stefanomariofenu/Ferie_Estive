@@ -119,7 +119,44 @@ export function EmployeePage() {
     setSelected(new Set(WORKING_DAYS.map((g) => g.iso)))
   }
 
+  // Riempie i soli giorni ancora vuoti come "Lavoro" (non tocca le ferie
+  // già inserite): utile per completare in fretta e poter salvare.
+  async function fillRestAsLavoro() {
+    const rest = WORKING_DAYS.filter((g) => !entries[g.iso]).map((g) => g.iso)
+    if (rest.length === 0) return
+    setSaving(true)
+    setError('')
+    const rows = rest.map((iso) => ({
+      user_id: userId,
+      data: iso,
+      tipo: 'lavoro' as Tipo,
+      note: null,
+    }))
+    const { data, error: sbError } = await supabase
+      .from('calendar_entries')
+      .upsert(rows, { onConflict: 'user_id,data' })
+      .select()
+    setSaving(false)
+    if (sbError) {
+      setError('Salvataggio non riuscito. ' + sbError.message)
+      return
+    }
+    setEntries((prev) => {
+      const next = { ...prev }
+      for (const row of (data ?? []) as CalendarEntry[]) next[row.data] = row
+      return next
+    })
+  }
+
   async function salvaPiano() {
+    const markedNow = TIPO_ORDER.reduce((s, t) => s + counts[t], 0)
+    const mancanti = WORKING_DAYS.length - markedNow
+    if (mancanti > 0) {
+      setError(
+        `Per salvare il piano devi compilare tutte le date: ne mancano ${mancanti}.`
+      )
+      return
+    }
     setSavingPlan(true)
     setError('')
     const { error: sbError } = await supabase
@@ -137,6 +174,7 @@ export function EmployeePage() {
 
   const marked = TIPO_ORDER.reduce((s, t) => s + counts[t], 0)
   const total = WORKING_DAYS.length
+  const complete = marked >= total
 
   return (
     <div className="min-h-screen summer-bg">
@@ -154,10 +192,11 @@ export function EmployeePage() {
             Ciao, <em>{profile?.nome || 'benvenuto'}</em>.
           </h1>
           <p className="mt-2 max-w-xl text-sm text-subtle">
-            Seleziona i giorni — anche{' '}
-            <span className="font-medium text-ink">trascinando</span> — e
-            colorali in blocco. Il periodo {SUGGESTED_LABEL} è quello caldamente
-            consigliato da KPMG per le ferie.
+            Seleziona i giorni, anche{' '}
+            <span className="font-medium text-ink">trascinando</span>, e
+            colorali in blocco. Si ricorda che le giornate dal{' '}
+            <span className="font-medium text-ink">10 al 28 agosto</span> sono
+            quelle in cui è caldamente consigliato da KPMG usufruire delle ferie.
           </p>
         </section>
 
@@ -183,7 +222,17 @@ export function EmployeePage() {
               >
                 Seleziona tutti i lavorativi
               </button>
-              {marked > 0 && (
+              {!complete && (
+                <button
+                  onClick={fillRestAsLavoro}
+                  disabled={saving}
+                  className="btn-ghost !bg-white !px-3 ring-1 ring-black/5"
+                  title="Riempie i giorni vuoti come Lavoro, senza toccare le ferie già inserite"
+                >
+                  Segna i restanti come Lavoro
+                </button>
+              )}
+              {marked > 0 && !complete && (
                 <span className="ml-auto text-xs text-subtle">
                   {total - marked} giorni ancora da compilare
                 </span>
@@ -213,14 +262,23 @@ export function EmployeePage() {
                 placeholder="Scrivi qui una nota…"
                 className="w-full resize-none rounded-xl border border-black/10 bg-muted px-4 py-3 text-sm text-ink outline-none transition focus:border-cyan/60 focus:bg-surface"
               />
-              <div className="mt-4 flex items-center justify-end gap-3">
-                <span className="text-xs text-subtle">
-                  {marked} / {total} giorni compilati
+              <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
+                <span
+                  className={`text-xs ${complete ? 'text-subtle' : 'text-pink'}`}
+                >
+                  {complete
+                    ? `Tutti i ${total} giorni compilati`
+                    : `Compila tutte le date per salvare — ne mancano ${total - marked}`}
                 </span>
                 <button
                   onClick={salvaPiano}
-                  disabled={savingPlan || saving}
+                  disabled={savingPlan || saving || !complete}
                   className="btn-primary"
+                  title={
+                    complete
+                      ? undefined
+                      : 'Compila tutte le date per salvare il piano'
+                  }
                 >
                   {savingPlan ? 'Salvataggio…' : 'Salva piano'}
                 </button>
