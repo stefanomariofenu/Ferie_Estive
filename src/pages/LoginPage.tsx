@@ -6,7 +6,7 @@ import { KpmgMark } from '../components/Logo'
 const ALLOWED_DOMAIN = '@kpmg.it'
 
 // Account amministratori (ruolo admin assegnato automaticamente al login).
-const ADMIN_EMAILS = ['sfenu@kpmg.it']
+const ADMIN_EMAILS = ['sfenu@kpmg.it', 'pmelzi@kpmg.it']
 
 type Step = 'email' | 'password'
 

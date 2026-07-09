@@ -2,16 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { CalendarEntry, Tipo } from '../types'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
-import {
-  dateISO,
-  dayFromISO,
-  isSuggested,
-  isWeekend,
-  SUGGESTED_START,
-  SUGGESTED_END,
-  TIPO_ORDER,
-  WORKING_DAYS,
-} from '../lib/august'
+import { WORKING_DAYS, SUGGESTED_LABEL, TIPO_ORDER } from '../lib/august'
 import { Header } from '../components/Header'
 import { SummaryBar } from '../components/SummaryBar'
 import { CalendarGrid } from '../components/CalendarGrid'
@@ -21,14 +12,16 @@ import { Spinner } from '../components/ui/Spinner'
 import { ErrorState } from '../components/ui/ErrorState'
 
 export function EmployeePage() {
-  const { session, profile } = useAuth()
+  const { session, profile, refreshProfile } = useAuth()
   const userId = session!.user.id
 
-  const [entries, setEntries] = useState<Record<number, CalendarEntry>>({})
-  const [selected, setSelected] = useState<Set<number>>(new Set())
+  const [entries, setEntries] = useState<Record<string, CalendarEntry>>({})
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [nota, setNota] = useState(profile?.nota ?? '')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+  const [savingPlan, setSavingPlan] = useState(false)
   const [celebrate, setCelebrate] = useState(false)
 
   const load = useCallback(async () => {
@@ -38,16 +31,13 @@ export function EmployeePage() {
       .from('calendar_entries')
       .select('*')
       .eq('user_id', userId)
-
     if (sbError) {
       setError('Impossibile caricare il tuo piano. ' + sbError.message)
       setLoading(false)
       return
     }
-    const map: Record<number, CalendarEntry> = {}
-    for (const row of (data ?? []) as CalendarEntry[]) {
-      map[dayFromISO(row.data)] = row
-    }
+    const map: Record<string, CalendarEntry> = {}
+    for (const row of (data ?? []) as CalendarEntry[]) map[row.data] = row
     setEntries(map)
     setLoading(false)
   }, [userId])
@@ -62,59 +52,42 @@ export function EmployeePage() {
       ferie_bloccate: 0,
       ferie_flessibili: 0,
     }
-    for (const day of Object.keys(entries)) {
-      c[entries[Number(day)].tipo]++
-    }
+    for (const iso of Object.keys(entries)) c[entries[iso].tipo]++
     return c
   }, [entries])
 
-  const selectedDays = useMemo(() => [...selected].sort((a, b) => a - b), [selected])
+  const selectedDays = useMemo(() => [...selected].sort(), [selected])
 
   async function applyTipo(tipo: Tipo) {
     if (selectedDays.length === 0) return
     setSaving(true)
     setError('')
-    const rows = selectedDays.map((day) => ({
+    const rows = selectedDays.map((iso) => ({
       user_id: userId,
-      data: dateISO(day),
+      data: iso,
       tipo,
-      note: entries[day]?.note ?? null,
+      note: entries[iso]?.note ?? null,
     }))
     const { data, error: sbError } = await supabase
       .from('calendar_entries')
       .upsert(rows, { onConflict: 'user_id,data' })
       .select()
-
     setSaving(false)
     if (sbError) {
       setError('Salvataggio non riuscito. ' + sbError.message)
       return
     }
-
     setEntries((prev) => {
       const next = { ...prev }
-      for (const row of (data ?? []) as CalendarEntry[]) {
-        next[dayFromISO(row.data)] = row
-      }
+      for (const row of (data ?? []) as CalendarEntry[]) next[row.data] = row
       return next
     })
     setSelected(new Set())
   }
 
-  // I giorni vengono già persistiti man mano; "Salva" conferma il piano e
-  // mostra il ringraziamento con l'animazione.
-  function handleSave() {
-    if (marked === 0) {
-      setError('Assegna almeno un giorno prima di salvare.')
-      return
-    }
-    setError('')
-    setCelebrate(true)
-  }
-
   async function clearSelected() {
     if (selectedDays.length === 0) return
-    const toDelete = selectedDays.filter((d) => entries[d])
+    const toDelete = selectedDays.filter((iso) => entries[iso])
     if (toDelete.length === 0) {
       setSelected(new Set())
       return
@@ -125,11 +98,7 @@ export function EmployeePage() {
       .from('calendar_entries')
       .delete()
       .eq('user_id', userId)
-      .in(
-        'data',
-        toDelete.map((d) => dateISO(d))
-      )
-
+      .in('data', toDelete)
     setSaving(false)
     if (sbError) {
       setError('Cancellazione non riuscita. ' + sbError.message)
@@ -137,22 +106,37 @@ export function EmployeePage() {
     }
     setEntries((prev) => {
       const next = { ...prev }
-      for (const d of toDelete) delete next[d]
+      for (const iso of toDelete) delete next[iso]
       return next
     })
     setSelected(new Set())
   }
 
   function selectSuggested() {
-    setSelected(
-      new Set(WORKING_DAYS.filter((d) => isSuggested(d) && !isWeekend(d)))
-    )
+    setSelected(new Set(WORKING_DAYS.filter((g) => g.suggested).map((g) => g.iso)))
   }
   function selectAll() {
-    setSelected(new Set(WORKING_DAYS))
+    setSelected(new Set(WORKING_DAYS.map((g) => g.iso)))
+  }
+
+  async function salvaPiano() {
+    setSavingPlan(true)
+    setError('')
+    const { error: sbError } = await supabase
+      .from('users')
+      .update({ nota: nota.trim() || null })
+      .eq('id', userId)
+    setSavingPlan(false)
+    if (sbError) {
+      setError('Salvataggio note non riuscito. ' + sbError.message)
+      return
+    }
+    await refreshProfile()
+    setCelebrate(true)
   }
 
   const marked = TIPO_ORDER.reduce((s, t) => s + counts[t], 0)
+  const total = WORKING_DAYS.length
 
   return (
     <div className="min-h-screen summer-bg">
@@ -164,28 +148,17 @@ export function EmployeePage() {
         />
       )}
 
-      <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
-        <section className="mb-6 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h1 className="headline text-[30px] leading-tight sm:text-[38px]">
-              Ciao, <em>{profile?.nome || 'benvenuto'}</em>.
-            </h1>
-            <p className="mt-2 max-w-xl text-sm text-subtle">
-              Seleziona i giorni — anche{' '}
-              <span className="font-medium text-ink">trascinando</span> — e
-              colorali in blocco. Il periodo {SUGGESTED_START}–{SUGGESTED_END} è
-              quello caldamente consigliato da KPMG per le ferie.
-            </p>
-          </div>
-          {!loading && !error && (
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="btn-primary shrink-0"
-            >
-              Salva il piano
-            </button>
-          )}
+      <main className="mx-auto max-w-4xl px-4 py-6 pb-28 sm:px-6 sm:py-8">
+        <section className="mb-6">
+          <h1 className="headline text-[30px] leading-tight sm:text-[38px]">
+            Ciao, <em>{profile?.nome || 'benvenuto'}</em>.
+          </h1>
+          <p className="mt-2 max-w-xl text-sm text-subtle">
+            Seleziona i giorni — anche{' '}
+            <span className="font-medium text-ink">trascinando</span> — e
+            colorali in blocco. Il periodo {SUGGESTED_LABEL} è quello caldamente
+            consigliato da KPMG per le ferie.
+          </p>
         </section>
 
         {loading ? (
@@ -198,15 +171,21 @@ export function EmployeePage() {
 
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-medium text-subtle">Azioni rapide:</span>
-              <button onClick={selectSuggested} className="btn-ghost !bg-white !px-3 ring-1 ring-black/5">
-                Seleziona 10–28
+              <button
+                onClick={selectSuggested}
+                className="btn-ghost !bg-white !px-3 ring-1 ring-black/5"
+              >
+                Seleziona {SUGGESTED_LABEL}
               </button>
-              <button onClick={selectAll} className="btn-ghost !bg-white !px-3 ring-1 ring-black/5">
+              <button
+                onClick={selectAll}
+                className="btn-ghost !bg-white !px-3 ring-1 ring-black/5"
+              >
                 Seleziona tutti i lavorativi
               </button>
               {marked > 0 && (
                 <span className="ml-auto text-xs text-subtle">
-                  {WORKING_DAYS.length - marked} giorni ancora da compilare
+                  {total - marked} giorni ancora da compilare
                 </span>
               )}
             </div>
@@ -216,6 +195,37 @@ export function EmployeePage() {
               selected={selected}
               onSelectionChange={setSelected}
             />
+
+            {/* Note + salvataggio in fondo */}
+            <div className="card p-5">
+              <label className="block text-sm font-semibold text-ink">
+                Note{' '}
+                <span className="font-normal text-subtle">(opzionale)</span>
+              </label>
+              <p className="mb-2 text-xs text-subtle">
+                Aggiungi indicazioni per il partner (es. reperibilità, vincoli…).
+              </p>
+              <textarea
+                value={nota}
+                onChange={(e) => setNota(e.target.value)}
+                rows={3}
+                maxLength={500}
+                placeholder="Scrivi qui una nota…"
+                className="w-full resize-none rounded-xl border border-black/10 bg-muted px-4 py-3 text-sm text-ink outline-none transition focus:border-cyan/60 focus:bg-surface"
+              />
+              <div className="mt-4 flex items-center justify-end gap-3">
+                <span className="text-xs text-subtle">
+                  {marked} / {total} giorni compilati
+                </span>
+                <button
+                  onClick={salvaPiano}
+                  disabled={savingPlan || saving}
+                  className="btn-primary"
+                >
+                  {savingPlan ? 'Salvataggio…' : 'Salva piano'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </main>

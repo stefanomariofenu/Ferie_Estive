@@ -47,7 +47,6 @@ export function SelectionBar({
                   style={{ backgroundColor: meta.bg, color: meta.fg }}
                   className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold transition duration-200 hover:brightness-95 active:scale-[0.98] disabled:opacity-50 sm:flex-none"
                 >
-                  <span>{meta.emoji}</span>
                   {meta.label}
                 </button>
               )

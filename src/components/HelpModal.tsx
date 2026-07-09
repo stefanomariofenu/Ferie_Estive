@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { TIPO_META, TIPO_ORDER } from '../lib/august'
 
-const SUPPORT_EMAIL = 'sfenu@kpmg.it'
+const SUPPORT_EMAILS = ['sfenu@kpmg.it', 'pmelzi@kpmg.it']
 
 /** Guida rapida su come compilare + contatto assistenza. */
 export function HelpModal({ onClose }: { onClose: () => void }) {
@@ -61,7 +61,7 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
                   className="mt-0.5 inline-flex h-5 shrink-0 items-center rounded-full px-2 text-xs font-semibold"
                   style={{ backgroundColor: m.bg, color: m.fg }}
                 >
-                  {m.emoji} {m.label}
+                  {m.label}
                 </span>
                 <span className="text-subtle">{m.desc}</span>
               </div>
@@ -77,12 +77,17 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           <p className="text-sm font-medium text-ink">Problemi o errori?</p>
           <p className="mt-0.5 text-sm text-subtle">
             Scrivi a{' '}
-            <a
-              href={`mailto:${SUPPORT_EMAIL}?subject=Assistenza Ferie Estive 2026`}
-              className="font-semibold text-accent hover:underline"
-            >
-              {SUPPORT_EMAIL}
-            </a>{' '}
+            {SUPPORT_EMAILS.map((mail, i) => (
+              <span key={mail}>
+                {i > 0 && ' o '}
+                <a
+                  href={`mailto:${mail}?subject=Assistenza Ferie Estive 2026`}
+                  className="font-semibold text-accent hover:underline"
+                >
+                  {mail}
+                </a>
+              </span>
+            ))}{' '}
             per richiedere supporto.
           </p>
         </div>

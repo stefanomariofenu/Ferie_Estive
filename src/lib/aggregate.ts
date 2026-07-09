@@ -1,46 +1,63 @@
-import type { AppUser, CalendarEntry, EmployeePlan, Tipo } from '../types'
-import { AUGUST_DAYS, dayFromISO, isWeekend } from './august'
+import type { AppUser, CalendarEntry, EmployeePlan, RosterPerson, Tipo } from '../types'
+import { DAYS } from './august'
 
 export interface DayCoverage {
-  day: number
+  iso: string
+  dom: number
+  month: number
+  monthShort: string
+  wLabel: string
+  weekend: boolean
+  suggested: boolean
   lavoro: number
   ferie_bloccate: number
   ferie_flessibili: number
-  /** Persone che NON hanno marcato quel giorno. */
   non_compilato: number
-  /** Weekend: ufficio chiuso, escluso dai conteggi di copertura. */
-  closed: boolean
 }
 
 export interface AggregateResult {
   plans: EmployeePlan[]
   coverage: DayCoverage[]
   respondedCount: number
-  totalUsers: number
+  totalPeople: number
 }
 
 /**
- * Costruisce i dati aggregati per la vista/expor admin a partire da
- * tutti gli utenti e tutte le entry di agosto.
+ * Costruisce i dati aggregati per admin.
+ * roster = elenco atteso (dalla lista collaboratori). Vengono mostrate anche
+ * le persone che non hanno ancora compilato.
  */
 export function buildAggregate(
+  roster: RosterPerson[],
   users: AppUser[],
   entries: CalendarEntry[]
 ): AggregateResult {
-  // Raggruppa le entry per utente.
-  const byUser = new Map<string, Record<number, Tipo>>()
+  const byUserId = new Map<string, Record<string, Tipo>>()
   for (const e of entries) {
-    const day = dayFromISO(e.data)
-    if (!byUser.has(e.user_id)) byUser.set(e.user_id, {})
-    byUser.get(e.user_id)![day] = e.tipo
+    if (!byUserId.has(e.user_id)) byUserId.set(e.user_id, {})
+    byUserId.get(e.user_id)![e.data] = e.tipo
   }
 
-  const plans: EmployeePlan[] = users
-    .map((u) => {
-      const byDay = byUser.get(u.id) ?? {}
+  // Indice utenti registrati per email.
+  const usersByEmail = new Map(users.map((u) => [u.email.toLowerCase(), u]))
+
+  // Unione: tutte le email del roster + eventuali utenti registrati non in lista.
+  const emails = new Set<string>()
+  roster.forEach((r) => emails.add(r.email.toLowerCase()))
+  users.forEach((u) => emails.add(u.email.toLowerCase()))
+  const rosterByEmail = new Map(roster.map((r) => [r.email.toLowerCase(), r]))
+
+  const plans: EmployeePlan[] = [...emails]
+    .map((email) => {
+      const u = usersByEmail.get(email)
+      const r = rosterByEmail.get(email)
+      const byDay = u ? byUserId.get(u.id) ?? {} : {}
+      const nome = (u?.nome || r?.nome || '').trim()
+      const cognome = (u?.cognome || r?.cognome || '').trim()
       return {
-        user: { id: u.id, nome: u.nome, cognome: u.cognome, email: u.email },
+        user: { id: u?.id ?? null, email, nome, cognome },
         byDay,
+        nota: u?.nota ?? null,
         hasResponded: Object.keys(byDay).length > 0,
       }
     })
@@ -51,29 +68,33 @@ export function buildAggregate(
       )
     )
 
-  const coverage: DayCoverage[] = AUGUST_DAYS.map((day) => {
+  const coverage: DayCoverage[] = DAYS.map((g) => {
     const row: DayCoverage = {
-      day,
+      iso: g.iso,
+      dom: g.dom,
+      month: g.month,
+      monthShort: g.monthShort,
+      wLabel: g.wLabel,
+      weekend: g.weekend,
+      suggested: g.suggested,
       lavoro: 0,
       ferie_bloccate: 0,
       ferie_flessibili: 0,
       non_compilato: 0,
-      closed: isWeekend(day),
     }
+    if (g.weekend) return row
     for (const p of plans) {
-      const t = p.byDay[day]
+      const t = p.byDay[g.iso]
       if (!t) row.non_compilato++
       else row[t]++
     }
     return row
   })
 
-  const respondedCount = plans.filter((p) => p.hasResponded).length
-
   return {
     plans,
     coverage,
-    respondedCount,
-    totalUsers: users.length,
+    respondedCount: plans.filter((p) => p.hasResponded).length,
+    totalPeople: plans.length,
   }
 }

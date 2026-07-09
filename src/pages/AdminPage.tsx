@@ -1,11 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { AppUser, CalendarEntry } from '../types'
+import type { AppUser, CalendarEntry, RosterPerson } from '../types'
 import { supabase } from '../lib/supabase'
 import { buildAggregate } from '../lib/aggregate'
-import {
-  DEFAULT_COVERAGE_THRESHOLD,
-  EXPECTED_HEADCOUNT,
-} from '../lib/august'
+import { DEFAULT_COVERAGE_THRESHOLD, EXPECTED_HEADCOUNT, PERIOD_LABEL } from '../lib/august'
 import { Header } from '../components/Header'
 import { AdminDashboard } from '../components/AdminDashboard'
 import { AdminTable } from '../components/AdminTable'
@@ -13,6 +10,7 @@ import { Spinner } from '../components/ui/Spinner'
 import { ErrorState } from '../components/ui/ErrorState'
 
 export function AdminPage() {
+  const [roster, setRoster] = useState<RosterPerson[]>([])
   const [users, setUsers] = useState<AppUser[]>([])
   const [entries, setEntries] = useState<CalendarEntry[]>([])
   const [loading, setLoading] = useState(true)
@@ -24,7 +22,8 @@ export function AdminPage() {
     setLoading(true)
     setError('')
 
-    const [usersRes, entriesRes] = await Promise.all([
+    const [rosterRes, usersRes, entriesRes] = await Promise.all([
+      supabase.from('allowed_emails').select('email, nome, cognome'),
       supabase.from('users').select('*'),
       supabase.from('calendar_entries').select('*'),
     ])
@@ -38,6 +37,9 @@ export function AdminPage() {
       return
     }
 
+    // Il roster (lista attesa) è opzionale: se la tabella non esiste ancora,
+    // si usano i soli utenti registrati.
+    setRoster((rosterRes.data ?? []) as RosterPerson[])
     setUsers((usersRes.data ?? []) as AppUser[])
     setEntries((entriesRes.data ?? []) as CalendarEntry[])
     setLoading(false)
@@ -47,8 +49,11 @@ export function AdminPage() {
     load()
   }, [load])
 
-  const agg = useMemo(() => buildAggregate(users, entries), [users, entries])
-  const expected = EXPECTED_HEADCOUNT ?? agg.totalUsers
+  const agg = useMemo(
+    () => buildAggregate(roster, users, entries),
+    [roster, users, entries]
+  )
+  const expected = EXPECTED_HEADCOUNT ?? agg.totalPeople
 
   async function handleExport() {
     setExporting(true)
@@ -73,8 +78,8 @@ export function AdminPage() {
               La <em>fotografia</em> del team.
             </h1>
             <p className="mt-2 text-sm text-subtle">
-              Piano consolidato di agosto 2026 · copertura giorno per giorno,
-              giorni critici ed export.
+              {PERIOD_LABEL} · copertura giorno per giorno, chi non ha ancora
+              compilato ed export.
             </p>
           </div>
           <button

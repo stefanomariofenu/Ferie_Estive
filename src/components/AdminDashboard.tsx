@@ -16,7 +16,7 @@ export function AdminDashboard({
   onThresholdChange,
 }: AdminDashboardProps) {
   const pct = expected > 0 ? Math.round((agg.respondedCount / expected) * 100) : 0
-  const working = agg.coverage.filter((c) => !c.closed)
+  const working = agg.coverage.filter((c) => !c.weekend)
   const uncovered = working.filter((c) => c.lavoro < threshold)
   const avgAtWork =
     working.length > 0
@@ -79,10 +79,10 @@ export function AdminDashboard({
           <div className="flex flex-wrap gap-2">
             {uncovered.map((c) => (
               <span
-                key={c.day}
+                key={c.iso}
                 className="inline-flex items-center gap-1.5 rounded-full bg-pink/10 px-3 py-1 text-xs font-semibold text-pink"
               >
-                {c.day} ago
+                {c.dom} {c.monthShort.toLowerCase()}
                 <span className="rounded-full bg-white/60 px-1.5 tabular-nums">
                   {c.lavoro}
                 </span>

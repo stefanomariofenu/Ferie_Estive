@@ -8,6 +8,7 @@ export interface AppUser {
   nome: string
   cognome: string
   ruolo: Ruolo
+  nota?: string | null
   created_at: string
 }
 
@@ -21,12 +22,18 @@ export interface CalendarEntry {
   updated_at: string
 }
 
-/** Riga aggregata usata nella tabella e nell'export admin. */
-export interface EmployeePlan {
-  user: Pick<AppUser, 'id' | 'nome' | 'cognome' | 'email'>
-  /** Mappa giorno (1-31) -> tipo inserito. */
-  byDay: Record<number, Tipo>
-  hasResponded: boolean
+/** Persona attesa (dal roster) + eventuale nome/cognome. */
+export interface RosterPerson {
+  email: string
+  nome: string | null
+  cognome: string | null
 }
 
-export type Theme = 'sereno' | 'essenziale'
+/** Riga aggregata usata nella tabella e nell'export admin. */
+export interface EmployeePlan {
+  user: { id: string | null; nome: string; cognome: string; email: string }
+  /** Mappa data ISO -> tipo inserito. */
+  byDay: Record<string, Tipo>
+  nota: string | null
+  hasResponded: boolean
+}

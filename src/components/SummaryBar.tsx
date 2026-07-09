@@ -20,7 +20,6 @@ export function SummaryBar({ counts }: { counts: Record<Tipo, number> }) {
                   className="inline-flex h-6 items-center gap-1.5 rounded-full px-2.5 text-xs font-semibold"
                   style={{ backgroundColor: meta.bg, color: meta.fg }}
                 >
-                  <span>{meta.emoji}</span>
                   {meta.label}
                 </div>
                 <span className="text-2xl font-semibold tabular-nums text-ink">
