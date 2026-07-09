@@ -19,6 +19,14 @@ drop policy if exists allowlist_read_auth on public.allowed_emails;
 create policy allowlist_read_auth on public.allowed_emails
   for select using (auth.role() = 'authenticated');
 
+
+-- Verifica (usata dal login) se un'email è in lista, senza esporre la lista.
+create or replace function public.is_email_allowed(p_email text)
+returns boolean language sql security definer set search_path = public stable as $$
+  select exists (select 1 from public.allowed_emails where email = lower(trim(p_email)));
+$$;
+grant execute on function public.is_email_allowed(text) to anon, authenticated;
+
 insert into public.allowed_emails (email, nome, cognome) values
   ('gfalchi@kpmg.it', 'Giacomo', 'Falchi'),
   ('nfuorlo@kpmg.it', 'Nicola', 'Fuorlo'),
