@@ -98,7 +98,7 @@ export const TIPO_META: Record<
   lavoro: {
     label: 'Lavoro',
     short: 'L',
-    desc: 'Giornata lavorativa in ufficio',
+    desc: 'Giornata lavorativa',
     // Più marcato per distinguerlo bene dai giorni vuoti.
     bg: '#B9CBE4',
     fg: '#12305C',

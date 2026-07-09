@@ -36,7 +36,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(null)
       return
     }
-    setProfile((data as AppUser) ?? null)
+    let user = (data as AppUser) ?? null
+
+    // Il roster (allowed_emails) è la fonte di verità per nome e cognome:
+    // se il profilo mostra un nome derivato dalla mail (es. "Acaldarone"),
+    // lo allineiamo al valore ufficiale ("Alessandro Aldo" / "Caldarone").
+    if (user?.email) {
+      const { data: r } = await supabase
+        .from('allowed_emails')
+        .select('nome, cognome')
+        .eq('email', user.email.toLowerCase())
+        .maybeSingle()
+      if (
+        r &&
+        (r.nome || r.cognome) &&
+        (r.nome !== user.nome || r.cognome !== user.cognome)
+      ) {
+        await supabase
+          .from('users')
+          .update({ nome: r.nome ?? '', cognome: r.cognome ?? '' })
+          .eq('id', userId)
+        user = { ...user, nome: r.nome ?? '', cognome: r.cognome ?? '' }
+      }
+    }
+
+    setProfile(user)
   }
 
   useEffect(() => {
