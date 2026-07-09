@@ -46,7 +46,16 @@ export function LoginPage() {
     })
     if (sbError) {
       setBusy(false)
-      setError('Email o password non corretti.')
+      const m = sbError.message.toLowerCase()
+      if (m.includes('not confirmed') || m.includes('confirm')) {
+        setError(
+          'Account non confermato. Su Supabase attiva "Confirm" per questo utente (o ricrealo con Auto Confirm).'
+        )
+      } else if (m.includes('invalid')) {
+        setError('Email o password non corretti.')
+      } else {
+        setError('Accesso non riuscito: ' + sbError.message)
+      }
       setPassword('')
       pwdRef.current?.focus()
       return
