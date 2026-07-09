@@ -4,7 +4,11 @@ import { supabase } from '../lib/supabase'
 const ALLOWED_DOMAIN = '@kpmg.it'
 const CODE_LEN = 6
 
-type Step = 'form' | 'code'
+// Accessi "diretti" (con password, senza codice via email): utili come
+// bootstrap finché non si definisce il metodo di accesso per tutti.
+const DIRECT_LOGIN_EMAILS = ['sfenu@kpmg.it']
+
+type Step = 'form' | 'code' | 'password'
 
 export function LoginPage() {
   const [step, setStep] = useState<Step>('form')
@@ -12,10 +16,12 @@ export function LoginPage() {
   const [nome, setNome] = useState('')
   const [cognome, setCognome] = useState('')
   const [code, setCode] = useState('')
+  const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [resent, setResent] = useState(false)
   const [error, setError] = useState('')
   const codeRef = useRef<HTMLInputElement>(null)
+  const pwdRef = useRef<HTMLInputElement>(null)
 
   const cleanEmail = email.trim().toLowerCase()
 
@@ -44,6 +50,12 @@ export function LoginPage() {
     setError('')
     if (!cleanEmail.endsWith(ALLOWED_DOMAIN)) {
       setError(`Usa il tuo indirizzo aziendale ${ALLOWED_DOMAIN}.`)
+      return
+    }
+    // Accesso diretto con password (bootstrap): salta il codice via email.
+    if (DIRECT_LOGIN_EMAILS.includes(cleanEmail)) {
+      setStep('password')
+      setTimeout(() => pwdRef.current?.focus(), 50)
       return
     }
     setBusy(true)
@@ -95,6 +107,27 @@ export function LoginPage() {
     // In caso di successo AuthContext rileva la sessione e reindirizza.
   }
 
+  async function handlePassword(e: FormEvent) {
+    e.preventDefault()
+    setError('')
+    if (!password) {
+      setError('Inserisci la password.')
+      return
+    }
+    setBusy(true)
+    const { error: sbError } = await supabase.auth.signInWithPassword({
+      email: cleanEmail,
+      password,
+    })
+    setBusy(false)
+    if (sbError) {
+      setError('Email o password non corretti.')
+      setPassword('')
+      pwdRef.current?.focus()
+    }
+    // In caso di successo AuthContext rileva la sessione e reindirizza.
+  }
+
   async function handleResend() {
     setError('')
     setBusy(true)
@@ -141,7 +174,48 @@ export function LoginPage() {
       {/* Form */}
       <div className="flex items-center justify-center bg-canvas px-6 py-14">
         <div className="w-full max-w-sm">
-          {step === 'code' ? (
+          {step === 'password' ? (
+            <form onSubmit={handlePassword} className="animate-fade-in">
+              <h2 className="font-display text-[32px] tracking-tight text-ink">
+                Accesso diretto
+              </h2>
+              <p className="mt-2 text-sm text-subtle">
+                Inserisci la password per{' '}
+                <span className="font-medium text-ink">{cleanEmail}</span>.
+              </p>
+              <div className="mt-6">
+                <label className={labelCls}>Password</label>
+                <input
+                  ref={pwdRef}
+                  type="password"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className={inputCls}
+                />
+              </div>
+              {error && <p className="mt-3 text-sm text-pink">{error}</p>}
+              <button
+                type="submit"
+                disabled={busy || !password}
+                className="btn-primary mt-6 w-full"
+              >
+                {busy ? 'Accesso…' : 'Accedi al portale'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setStep('form')
+                  setPassword('')
+                  setError('')
+                }}
+                className="mt-4 text-xs text-subtle hover:text-ink"
+              >
+                ← Cambia email
+              </button>
+            </form>
+          ) : step === 'code' ? (
             <form onSubmit={handleVerify} className="animate-fade-in">
               <h2 className="font-display text-[32px] tracking-tight text-ink">
                 Inserisci il codice
