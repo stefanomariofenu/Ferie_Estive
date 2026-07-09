@@ -1,27 +1,28 @@
 import { useState } from 'react'
 
+// Un unico file: il logo KPMG BIANCO in public/kpmg-logo.png.
+// Sfondo scuro (login) -> bianco; sfondo chiaro (header) -> reso scuro via CSS.
+const LOGO_SRC = '/kpmg-logo.png'
+
 /**
- * Logo KPMG come immagine (public/kpmg-logo.svg), con fallback automatico
- * alla scritta se il file non è presente. Basta sostituire il file col
- * logo ufficiale KPMG per vederlo ovunque.
+ * Logo KPMG come immagine, con fallback automatico alla scritta se il file
+ * non è presente. Basta salvare il logo ufficiale in public/kpmg-logo.png.
  */
 export function KpmgMark({
   variant = 'default',
-  className = 'h-6',
+  className = 'h-6 w-auto',
 }: {
   variant?: 'default' | 'white'
   className?: string
 }) {
   const [failed, setFailed] = useState(false)
-  const src = variant === 'white' ? '/kpmg-logo-white.svg' : '/kpmg-logo.svg'
 
   if (failed) {
     return (
       <span
-        className={`font-bold tracking-tight ${
+        className={`text-[19px] font-bold tracking-tight ${
           variant === 'white' ? 'text-white' : 'text-accent'
         }`}
-        style={{ fontSize: '19px' }}
       >
         KPMG
       </span>
@@ -29,9 +30,11 @@ export function KpmgMark({
   }
   return (
     <img
-      src={src}
+      src={LOGO_SRC}
       alt="KPMG"
       className={className}
+      // Nell'header (sfondo chiaro) il logo bianco viene reso scuro.
+      style={variant === 'default' ? { filter: 'brightness(0)' } : undefined}
       onError={() => setFailed(true)}
     />
   )
