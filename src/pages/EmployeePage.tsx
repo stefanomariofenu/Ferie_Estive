@@ -91,12 +91,6 @@ export function EmployeePage() {
       return
     }
 
-    // Il piano diventa "completo" ora? (tutti i giorni lavorativi coperti)
-    const wasComplete = WORKING_DAYS.every((d) => entries[d])
-    const markedAfter = new Set(Object.keys(entries).map(Number))
-    selectedDays.forEach((d) => markedAfter.add(d))
-    const nowComplete = WORKING_DAYS.every((d) => markedAfter.has(d))
-
     setEntries((prev) => {
       const next = { ...prev }
       for (const row of (data ?? []) as CalendarEntry[]) {
@@ -105,10 +99,17 @@ export function EmployeePage() {
       return next
     })
     setSelected(new Set())
+  }
 
-    if (nowComplete && !wasComplete) {
-      setCelebrate(true)
+  // I giorni vengono già persistiti man mano; "Salva" conferma il piano e
+  // mostra il ringraziamento con l'animazione.
+  function handleSave() {
+    if (marked === 0) {
+      setError('Assegna almeno un giorno prima di salvare.')
+      return
     }
+    setError('')
+    setCelebrate(true)
   }
 
   async function clearSelected() {
@@ -164,16 +165,27 @@ export function EmployeePage() {
       )}
 
       <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
-        <section className="mb-6">
-          <h1 className="headline text-[30px] leading-tight sm:text-[38px]">
-            Ciao, <em>{profile?.nome || 'benvenuto'}</em>.
-          </h1>
-          <p className="mt-2 max-w-xl text-sm text-subtle">
-            Seleziona i giorni — anche{' '}
-            <span className="font-medium text-ink">trascinando</span> — e
-            colorali in blocco. Il periodo {SUGGESTED_START}–{SUGGESTED_END} è
-            quello caldamente consigliato da KPMG per le ferie.
-          </p>
+        <section className="mb-6 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="headline text-[30px] leading-tight sm:text-[38px]">
+              Ciao, <em>{profile?.nome || 'benvenuto'}</em>.
+            </h1>
+            <p className="mt-2 max-w-xl text-sm text-subtle">
+              Seleziona i giorni — anche{' '}
+              <span className="font-medium text-ink">trascinando</span> — e
+              colorali in blocco. Il periodo {SUGGESTED_START}–{SUGGESTED_END} è
+              quello caldamente consigliato da KPMG per le ferie.
+            </p>
+          </div>
+          {!loading && !error && (
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="btn-primary shrink-0"
+            >
+              Salva il piano
+            </button>
+          )}
         </section>
 
         {loading ? (

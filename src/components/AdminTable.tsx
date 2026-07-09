@@ -7,6 +7,7 @@ import {
   TIPO_ORDER,
   isSuggested,
   isWeekend,
+  weekdayLabel,
 } from '../lib/august'
 
 type Filtro = 'tutti' | Tipo
@@ -65,11 +66,14 @@ export function AdminTable({ agg }: AdminTableProps) {
               {AUGUST_DAYS.map((day) => (
                 <th
                   key={day}
-                  className={`px-0 py-2 text-center text-[11px] font-medium ${
+                  className={`px-0 pb-2 pt-1.5 text-center align-bottom font-medium ${
                     isSuggested(day) ? 'text-accent' : 'text-subtle'
-                  } ${isWeekend(day) ? 'opacity-50' : ''}`}
+                  } ${isWeekend(day) ? 'opacity-45' : ''}`}
                 >
-                  {day}
+                  <div className="text-[8px] uppercase tracking-wide opacity-70">
+                    {weekdayLabel(day)}
+                  </div>
+                  <div className="text-[11px] tabular-nums">{day}</div>
                 </th>
               ))}
             </tr>
