@@ -57,7 +57,7 @@ export function SelectionBar({
             <button
               onClick={onClearEntries}
               disabled={saving}
-              className="btn-ghost !px-3 !text-bloccate-fg"
+              className="btn-ghost !px-3 !text-pink ring-1 ring-pink/30"
               title="Rimuovi la categoria dai giorni selezionati"
             >
               Svuota
