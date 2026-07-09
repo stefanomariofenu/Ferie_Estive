@@ -129,13 +129,18 @@ export function LoginPage() {
       pwdRef.current?.focus()
       return
     }
-    // Allinea il profilo al nome/cognome digitati nel form, così il saluto
-    // mostra "Stefano Mario" e non la parte dell'email.
+    // L'accesso con password è riservato agli account bootstrap
+    // (DIRECT_LOGIN_EMAILS): allinea nome/cognome e assegna ruolo admin,
+    // così la Dashboard è subito visibile senza SQL manuale.
     const nomeCompleto = nome.trim().replace(/\s+/g, ' ')
-    if (data.user && (nomeCompleto || cognome.trim())) {
+    if (data.user) {
       await supabase
         .from('users')
-        .update({ nome: nomeCompleto, cognome: cognome.trim() })
+        .update({
+          nome: nomeCompleto || undefined,
+          cognome: cognome.trim() || undefined,
+          ruolo: 'admin',
+        })
         .eq('id', data.user.id)
       await refreshProfile()
     }
