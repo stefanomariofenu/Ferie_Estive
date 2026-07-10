@@ -2,15 +2,27 @@ import type { Tipo } from '../types'
 import { TIPO_META, TIPO_ORDER, WORKING_DAYS } from '../lib/august'
 
 /** Conteggi per tipo, totale ferie e completamento sui giorni lavorativi. */
-export function SummaryBar({ counts }: { counts: Record<Tipo, number> }) {
+export function SummaryBar({
+  counts,
+  variant = 'row',
+}: {
+  counts: Record<Tipo, number>
+  /** 'row' = layout orizzontale (default); 'sidebar' = impilato in verticale. */
+  variant?: 'row' | 'sidebar'
+}) {
   const total = WORKING_DAYS.length
   const marked = TIPO_ORDER.reduce((s, t) => s + counts[t], 0)
   const totFerie = counts.ferie_bloccate + counts.ferie_flessibili
   const pct = total > 0 ? Math.round((marked / total) * 100) : 0
 
+  const catGrid =
+    variant === 'sidebar'
+      ? 'grid grid-cols-1 gap-3'
+      : 'grid grid-cols-1 gap-3 sm:grid-cols-3'
+
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className={catGrid}>
         {TIPO_ORDER.map((t) => {
           const meta = TIPO_META[t]
           return (
