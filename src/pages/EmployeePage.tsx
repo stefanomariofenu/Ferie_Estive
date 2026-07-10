@@ -263,49 +263,44 @@ export function EmployeePage() {
         ) : error ? (
           <ErrorState message={error} onRetry={load} />
         ) : (
-          <div className="lg:grid lg:grid-cols-[minmax(300px,340px)_1fr] lg:gap-6 lg:items-start">
-            <aside className="space-y-4 lg:sticky lg:top-20">
-              <SummaryBar counts={counts} variant="sidebar" />
+          <div className="space-y-5">
+            <SummaryBar counts={counts} />
 
-              {!inviato && (
-                <div className="card p-4">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-subtle">
-                    Azioni rapide
+            {!inviato && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-medium text-subtle">
+                  Azioni rapide:
+                </span>
+                <button
+                  onClick={selectSuggested}
+                  className="btn-ghost !bg-white !px-3 ring-1 ring-black/5"
+                >
+                  Seleziona {SUGGESTED_LABEL}
+                </button>
+                <button
+                  onClick={selectAll}
+                  className="btn-ghost !bg-white !px-3 ring-1 ring-black/5"
+                >
+                  Seleziona tutti i lavorativi
+                </button>
+                {!complete && (
+                  <button
+                    onClick={fillRestAsLavoro}
+                    disabled={saving}
+                    className="btn-ghost !bg-white !px-3 ring-1 ring-black/5"
+                    title="Riempie i giorni vuoti come Lavoro, senza toccare le ferie già inserite"
+                  >
+                    Segna i restanti come Lavoro
+                  </button>
+                )}
+                {marked > 0 && !complete && (
+                  <span className="ml-auto text-xs text-subtle">
+                    {total - marked} giorni ancora da compilare
                   </span>
-                  <div className="mt-3 space-y-2">
-                    <button
-                      onClick={selectSuggested}
-                      className="btn-ghost w-full justify-center !bg-white ring-1 ring-black/5"
-                    >
-                      Seleziona {SUGGESTED_LABEL}
-                    </button>
-                    <button
-                      onClick={selectAll}
-                      className="btn-ghost w-full justify-center !bg-white ring-1 ring-black/5"
-                    >
-                      Seleziona tutti i lavorativi
-                    </button>
-                    {!complete && (
-                      <button
-                        onClick={fillRestAsLavoro}
-                        disabled={saving}
-                        className="btn-ghost w-full justify-center !bg-white ring-1 ring-black/5"
-                        title="Riempie i giorni vuoti come Lavoro, senza toccare le ferie già inserite"
-                      >
-                        Segna i restanti come Lavoro
-                      </button>
-                    )}
-                  </div>
-                  {marked > 0 && !complete && (
-                    <p className="mt-3 text-xs text-subtle">
-                      {total - marked} giorni ancora da compilare
-                    </p>
-                  )}
-                </div>
-              )}
-            </aside>
+                )}
+              </div>
+            )}
 
-            <div className="mt-5 space-y-5 lg:mt-0">
             <CalendarGrid
               entries={entries}
               selected={selected}
@@ -388,7 +383,6 @@ export function EmployeePage() {
                 </div>
               </div>
             )}
-            </div>
           </div>
         )}
       </main>
