@@ -51,14 +51,17 @@ export function buildAggregate(
     .map((email) => {
       const u = usersByEmail.get(email)
       const r = rosterByEmail.get(email)
-      const byDay = u ? byUserId.get(u.id) ?? {} : {}
+      // Conta SOLO i piani inviati: le modifiche in corso (non inviate) non
+      // devono comparire nella dashboard/Excel.
+      const inviato = !!u?.inviato
+      const byDay = inviato && u ? byUserId.get(u.id) ?? {} : {}
       const nome = (u?.nome || r?.nome || '').trim()
       const cognome = (u?.cognome || r?.cognome || '').trim()
       return {
         user: { id: u?.id ?? null, email, nome, cognome },
         byDay,
-        nota: u?.nota ?? null,
-        hasResponded: Object.keys(byDay).length > 0,
+        nota: inviato ? u?.nota ?? null : null,
+        hasResponded: inviato,
       }
     })
     .sort((a, b) =>

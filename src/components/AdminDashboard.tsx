@@ -27,7 +27,7 @@ export function AdminDashboard({
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile
-          label="Hanno compilato"
+          label="Hanno inviato"
           value={`${agg.respondedCount}`}
           sub={`su ${expected} attesi`}
           accent="#00338D"

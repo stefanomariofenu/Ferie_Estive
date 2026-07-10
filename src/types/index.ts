@@ -9,6 +9,8 @@ export interface AppUser {
   cognome: string
   ruolo: Ruolo
   nota?: string | null
+  inviato?: boolean
+  inviato_at?: string | null
   created_at: string
 }
 

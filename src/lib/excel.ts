@@ -63,8 +63,8 @@ function buildDashboardSheet(
 
   const kpi: [string, string | number][] = [
     ['Persone attese', expected],
-    ['Hanno compilato il piano', agg.respondedCount],
-    ['Non hanno ancora compilato', expected - agg.respondedCount],
+    ['Hanno inviato il piano', agg.respondedCount],
+    ['Non hanno ancora inviato', expected - agg.respondedCount],
     ['Percentuale di completamento', `${pct}%`],
     ['Soglia minima copertura', threshold],
     [

@@ -48,7 +48,7 @@ export function AdminTable({ agg }: AdminTableProps) {
             onClick={() => setFiltro('mancanti')}
             color="#C6007E"
           >
-            Non ha compilato ({missing})
+            Non ha inviato ({missing})
           </FilterChip>
           {TIPO_ORDER.map((t) => (
             <FilterChip
@@ -105,7 +105,7 @@ export function AdminTable({ agg }: AdminTableProps) {
                   </div>
                   {!p.hasResponded && (
                     <div className="text-[11px] font-semibold text-pink">
-                      non ha compilato
+                      non ha inviato
                     </div>
                   )}
                 </td>

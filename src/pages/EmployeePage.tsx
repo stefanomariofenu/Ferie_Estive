@@ -11,9 +11,24 @@ import { CompletionOverlay } from '../components/CompletionOverlay'
 import { Spinner } from '../components/ui/Spinner'
 import { ErrorState } from '../components/ui/ErrorState'
 
+function formatInviato(iso?: string | null): string {
+  if (!iso) return ''
+  try {
+    return new Date(iso).toLocaleString('it-IT', {
+      day: '2-digit',
+      month: 'long',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  } catch {
+    return ''
+  }
+}
+
 export function EmployeePage() {
   const { session, profile, refreshProfile } = useAuth()
   const userId = session!.user.id
+  const inviato = profile?.inviato ?? false
 
   const [entries, setEntries] = useState<Record<string, CalendarEntry>>({})
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -120,7 +135,7 @@ export function EmployeePage() {
   }
 
   // Riempie i soli giorni ancora vuoti come "Lavoro" (non tocca le ferie
-  // già inserite): utile per completare in fretta e poter salvare.
+  // già inserite): utile per completare in fretta e poter inviare.
   async function fillRestAsLavoro() {
     const rest = WORKING_DAYS.filter((g) => !entries[g.iso]).map((g) => g.iso)
     if (rest.length === 0) return
@@ -148,12 +163,14 @@ export function EmployeePage() {
     })
   }
 
-  async function salvaPiano() {
+  // Invia il piano: da questo momento è quello che vede il team ed è in
+  // sola lettura finché non viene ritirato.
+  async function inviaPiano() {
     const markedNow = TIPO_ORDER.reduce((s, t) => s + counts[t], 0)
     const mancanti = WORKING_DAYS.length - markedNow
     if (mancanti > 0) {
       setError(
-        `Per salvare il piano devi compilare tutte le date: ne mancano ${mancanti}.`
+        `Per inviare il piano devi compilare tutte le date: ne mancano ${mancanti}.`
       )
       return
     }
@@ -161,15 +178,43 @@ export function EmployeePage() {
     setError('')
     const { error: sbError } = await supabase
       .from('users')
-      .update({ nota: nota.trim() || null })
+      .update({
+        nota: nota.trim() || null,
+        inviato: true,
+        inviato_at: new Date().toISOString(),
+      })
       .eq('id', userId)
     setSavingPlan(false)
     if (sbError) {
-      setError('Salvataggio note non riuscito. ' + sbError.message)
+      setError('Invio non riuscito. ' + sbError.message)
+      return
+    }
+    setSelected(new Set())
+    await refreshProfile()
+    setCelebrate(true)
+  }
+
+  // Ritira l'invio: riapre il piano per la modifica. Esce dalla dashboard
+  // finché non viene reinviato.
+  async function ritiraInvio() {
+    if (
+      !window.confirm(
+        'Vuoi ritirare l’invio e riaprire il piano per modificarlo? Fino al nuovo invio non comparirà nel riepilogo del team.'
+      )
+    )
+      return
+    setSavingPlan(true)
+    setError('')
+    const { error: sbError } = await supabase
+      .from('users')
+      .update({ inviato: false })
+      .eq('id', userId)
+    setSavingPlan(false)
+    if (sbError) {
+      setError('Operazione non riuscita. ' + sbError.message)
       return
     }
     await refreshProfile()
-    setCelebrate(true)
   }
 
   const marked = TIPO_ORDER.reduce((s, t) => s + counts[t], 0)
@@ -192,11 +237,24 @@ export function EmployeePage() {
             Ciao, <em>{profile?.nome || 'benvenuto'}</em>.
           </h1>
           <p className="mt-2 max-w-xl text-sm text-subtle">
-            Seleziona i giorni, anche{' '}
-            <span className="font-medium text-ink">trascinando</span>, e
-            colorali in blocco. Si ricorda che le giornate dal{' '}
-            <span className="font-medium text-ink">10 al 28 agosto</span> sono
-            quelle in cui è caldamente consigliato da KPMG usufruire delle ferie.
+            {inviato ? (
+              <>
+                Il tuo piano è{' '}
+                <span className="font-medium text-ink">inviato</span> ed è in
+                sola lettura: è quello che vede il team. Per modificarlo usa{' '}
+                <span className="font-medium text-ink">Ritira invio</span> qui
+                sotto.
+              </>
+            ) : (
+              <>
+                Seleziona i giorni, anche{' '}
+                <span className="font-medium text-ink">trascinando</span>, e
+                colorali in blocco. Si ricorda che le giornate dal{' '}
+                <span className="font-medium text-ink">10 al 28 agosto</span>{' '}
+                sono quelle in cui è caldamente consigliato da KPMG usufruire
+                delle ferie.
+              </>
+            )}
           </p>
         </section>
 
@@ -208,93 +266,136 @@ export function EmployeePage() {
           <div className="space-y-5">
             <SummaryBar counts={counts} />
 
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-medium text-subtle">Azioni rapide:</span>
-              <button
-                onClick={selectSuggested}
-                className="btn-ghost !bg-white !px-3 ring-1 ring-black/5"
-              >
-                Seleziona {SUGGESTED_LABEL}
-              </button>
-              <button
-                onClick={selectAll}
-                className="btn-ghost !bg-white !px-3 ring-1 ring-black/5"
-              >
-                Seleziona tutti i lavorativi
-              </button>
-              {!complete && (
-                <button
-                  onClick={fillRestAsLavoro}
-                  disabled={saving}
-                  className="btn-ghost !bg-white !px-3 ring-1 ring-black/5"
-                  title="Riempie i giorni vuoti come Lavoro, senza toccare le ferie già inserite"
-                >
-                  Segna i restanti come Lavoro
-                </button>
-              )}
-              {marked > 0 && !complete && (
-                <span className="ml-auto text-xs text-subtle">
-                  {total - marked} giorni ancora da compilare
+            {!inviato && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-medium text-subtle">
+                  Azioni rapide:
                 </span>
-              )}
-            </div>
+                <button
+                  onClick={selectSuggested}
+                  className="btn-ghost !bg-white !px-3 ring-1 ring-black/5"
+                >
+                  Seleziona {SUGGESTED_LABEL}
+                </button>
+                <button
+                  onClick={selectAll}
+                  className="btn-ghost !bg-white !px-3 ring-1 ring-black/5"
+                >
+                  Seleziona tutti i lavorativi
+                </button>
+                {!complete && (
+                  <button
+                    onClick={fillRestAsLavoro}
+                    disabled={saving}
+                    className="btn-ghost !bg-white !px-3 ring-1 ring-black/5"
+                    title="Riempie i giorni vuoti come Lavoro, senza toccare le ferie già inserite"
+                  >
+                    Segna i restanti come Lavoro
+                  </button>
+                )}
+                {marked > 0 && !complete && (
+                  <span className="ml-auto text-xs text-subtle">
+                    {total - marked} giorni ancora da compilare
+                  </span>
+                )}
+              </div>
+            )}
 
             <CalendarGrid
               entries={entries}
               selected={selected}
               onSelectionChange={setSelected}
+              locked={inviato}
             />
 
-            {/* Note + salvataggio in fondo */}
-            <div className="card p-5">
-              <label className="block text-sm font-semibold text-ink">
-                Note{' '}
-                <span className="font-normal text-subtle">(opzionale)</span>
-              </label>
-              <p className="mb-2 text-xs text-subtle">
-                Aggiungi indicazioni per il partner (es. reperibilità, vincoli…).
-              </p>
-              <textarea
-                value={nota}
-                onChange={(e) => setNota(e.target.value)}
-                rows={3}
-                maxLength={500}
-                placeholder="Scrivi qui una nota…"
-                className="w-full resize-none rounded-xl border border-black/10 bg-muted px-4 py-3 text-sm text-ink outline-none transition focus:border-cyan/60 focus:bg-surface"
-              />
-              <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
-                <span
-                  className={`text-xs ${complete ? 'text-subtle' : 'text-pink'}`}
-                >
-                  {complete
-                    ? `Tutti i ${total} giorni compilati`
-                    : `Compila tutte le date per salvare — ne mancano ${total - marked}`}
-                </span>
-                <button
-                  onClick={salvaPiano}
-                  disabled={savingPlan || saving || !complete}
-                  className="btn-primary"
-                  title={
-                    complete
-                      ? undefined
-                      : 'Compila tutte le date per salvare il piano'
-                  }
-                >
-                  {savingPlan ? 'Salvataggio…' : 'Salva piano'}
-                </button>
+            {inviato ? (
+              /* Piano inviato: riepilogo + ritiro */
+              <div className="card p-5">
+                <div className="flex flex-wrap items-start gap-4">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
+                    ✓
+                  </div>
+                  <div className="min-w-[200px] flex-1">
+                    <p className="text-sm font-semibold text-ink">
+                      Piano inviato
+                    </p>
+                    <p className="mt-1 text-xs text-subtle">
+                      {profile?.inviato_at
+                        ? `Inviato il ${formatInviato(profile.inviato_at)}. `
+                        : ''}
+                      È il piano che vede il team. Per modificarlo, ritira
+                      l’invio: potrai ricompilarlo e reinviarlo.
+                    </p>
+                    {nota && (
+                      <p className="mt-3 whitespace-pre-line text-sm text-ink">
+                        <span className="font-medium">Nota:</span> {nota}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    onClick={ritiraInvio}
+                    disabled={savingPlan}
+                    className="btn-ghost ring-1 ring-black/10"
+                  >
+                    {savingPlan ? 'Attendi…' : 'Ritira invio'}
+                  </button>
+                </div>
               </div>
-            </div>
+            ) : (
+              /* Note + invio in fondo */
+              <div className="card p-5">
+                <label className="block text-sm font-semibold text-ink">
+                  Note{' '}
+                  <span className="font-normal text-subtle">(opzionale)</span>
+                </label>
+                <p className="mb-2 text-xs text-subtle">
+                  Aggiungi indicazioni per il partner (es. reperibilità,
+                  vincoli…).
+                </p>
+                <textarea
+                  value={nota}
+                  onChange={(e) => setNota(e.target.value)}
+                  rows={3}
+                  maxLength={500}
+                  placeholder="Scrivi qui una nota…"
+                  className="w-full resize-none rounded-xl border border-black/10 bg-muted px-4 py-3 text-sm text-ink outline-none transition focus:border-cyan/60 focus:bg-surface"
+                />
+                <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
+                  <span
+                    className={`text-xs ${complete ? 'text-subtle' : 'text-pink'}`}
+                  >
+                    {complete
+                      ? `Tutti i ${total} giorni compilati`
+                      : `Compila tutte le date per inviare — ne mancano ${total - marked}`}
+                  </span>
+                  <button
+                    onClick={inviaPiano}
+                    disabled={savingPlan || saving || !complete}
+                    className="btn-primary"
+                    title={
+                      complete
+                        ? undefined
+                        : 'Compila tutte le date per inviare il piano'
+                    }
+                  >
+                    {savingPlan ? 'Invio…' : 'Salva e invia piano'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </main>
 
-      <SelectionBar
-        count={selected.size}
-        saving={saving}
-        onApply={applyTipo}
-        onClearEntries={clearSelected}
-        onDeselect={() => setSelected(new Set())}
-      />
+      {!inviato && (
+        <SelectionBar
+          count={selected.size}
+          saving={saving}
+          onApply={applyTipo}
+          onClearEntries={clearSelected}
+          onDeselect={() => setSelected(new Set())}
+        />
+      )}
     </div>
   )
 }

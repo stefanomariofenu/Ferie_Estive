@@ -79,7 +79,7 @@ export function AdminPage() {
             </h1>
             <p className="mt-2 text-sm text-subtle">
               {PERIOD_LABEL} · copertura giorno per giorno, chi non ha ancora
-              compilato ed export.
+              inviato ed export.
             </p>
           </div>
           <button

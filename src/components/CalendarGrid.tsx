@@ -17,12 +17,15 @@ interface CalendarGridProps {
   entries: Record<string, CalendarEntry>
   selected: Set<string>
   onSelectionChange: (next: Set<string>) => void
+  /** Piano inviato: calendario in sola lettura, nessuna selezione. */
+  locked?: boolean
 }
 
 export function CalendarGrid({
   entries,
   selected,
   onSelectionChange,
+  locked = false,
 }: CalendarGridProps) {
   const dragging = useRef(false)
   const mode = useRef<'add' | 'remove'>('add')
@@ -47,7 +50,7 @@ export function CalendarGrid({
   }
 
   function handlePointerDown(iso: string, e: React.PointerEvent) {
-    if (giornoOf(iso)?.weekend) return
+    if (locked || giornoOf(iso)?.weekend) return
     e.preventDefault()
     dragging.current = true
     mode.current = selRef.current.has(iso) ? 'remove' : 'add'
@@ -55,7 +58,7 @@ export function CalendarGrid({
   }
 
   function handlePointerEnter(iso: string) {
-    if (!dragging.current || giornoOf(iso)?.weekend) return
+    if (locked || !dragging.current || giornoOf(iso)?.weekend) return
     apply(iso)
   }
 
@@ -67,8 +70,11 @@ export function CalendarGrid({
             <em>{PERIOD_LABEL}</em>
           </h2>
           <p className="text-xs text-subtle">
-            Tocca o <span className="font-medium text-ink">trascina</span> per
-            selezionare più giorni, poi scegli la categoria.
+            {locked ? (
+              <>Piano inviato — <span className="font-medium text-ink">sola lettura</span>. Ritira l'invio per modificarlo.</>
+            ) : (
+              <>Tocca o <span className="font-medium text-ink">trascina</span> per selezionare più giorni, poi scegli la categoria.</>
+            )}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-subtle">
