@@ -38,12 +38,11 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
         <ol className="space-y-3">
           <Step n={1} title="Seleziona i giorni">
             Tocca un giorno, oppure <b>tieni premuto e trascina</b> per
-            selezionarne più di uno insieme. Sabato e domenica sono chiusi e
-            non si compilano.
+            selezionarne più di uno insieme. Sabato e domenica esclusi.
           </Step>
           <Step n={2} title="Scegli la categoria">
             Nella barra in basso scegli come sarà la giornata. Puoi selezionare
-            più giorni e colorarli tutti in un colpo solo; con <b>Svuota</b>
+            più giorni e colorarli tutti in un colpo solo; con <b>Svuota</b>{' '}
             rimuovi la scelta dai giorni selezionati.
           </Step>
           <Step n={3} title="Compila tutto e invia">
