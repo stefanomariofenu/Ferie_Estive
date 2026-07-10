@@ -28,7 +28,7 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
             <h2 className="headline text-[24px]">
               Come <em>funziona</em>
             </h2>
-            <p className="text-sm text-subtle">Compilare il piano in 3 passi.</p>
+            <p className="text-sm text-subtle">Compilare e inviare il piano in pochi passi.</p>
           </div>
           <button onClick={onClose} className="btn-ghost !px-2" aria-label="Chiudi">
             ✕
@@ -43,11 +43,18 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           </Step>
           <Step n={2} title="Scegli la categoria">
             Nella barra in basso scegli come sarà la giornata. Puoi selezionare
-            più giorni e colorarli tutti in un colpo solo.
+            più giorni e colorarli tutti in un colpo solo; con <b>Svuota</b>
+            rimuovi la scelta dai giorni selezionati.
           </Step>
-          <Step n={3} title="Modifica quando vuoi">
-            Per cambiare, riseleziona i giorni e applica un'altra categoria;
-            con <b>Svuota</b> rimuovi la scelta. Il salvataggio è automatico.
+          <Step n={3} title="Compila tutto e invia">
+            Vanno colorate <b>tutte</b> le giornate lavorative (usa
+            «Segna i restanti come Lavoro» per finire in fretta). Poi premi{' '}
+            <b>Salva e invia piano</b>: da quel momento è quello che vede il
+            team.
+          </Step>
+          <Step n={4} title="Serve modificare?">
+            Dopo l'invio il calendario è in sola lettura. Premi{' '}
+            <b>Ritira invio</b> per riaprirlo, aggiornarlo e reinviarlo.
           </Step>
         </ol>
 
