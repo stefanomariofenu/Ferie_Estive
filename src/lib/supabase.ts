@@ -56,8 +56,10 @@ type FerieSupabase = Pick<SupabaseClient, 'auth' | 'from' | 'rpc'>
 function buildSelfHosted(): FerieSupabase {
   const key = anonKey || 'placeholder-anon-key'
 
+  // Senza gateway/Kong, GoTrue è servito sulla radice del suo container
+  // (endpoint /token, /signup, /logout, ...): niente prefisso /auth/v1.
   const auth = new AuthClient({
-    url: `${authUrl || 'https://placeholder.invalid'}/auth/v1`,
+    url: authUrl || 'https://placeholder.invalid',
     headers: { apikey: key, Authorization: `Bearer ${key}` },
     storageKey: 'ferie-estive-auth',
     autoRefreshToken: true,
@@ -77,7 +79,9 @@ function buildSelfHosted(): FerieSupabase {
     return fetch(input, { ...init, headers })
   }
 
-  const rest = new PostgrestClient(`${restUrl || 'https://placeholder.invalid'}/rest/v1`, {
+  // PostgREST è servito sulla radice del suo container (/users,
+  // /calendar_entries, /rpc/is_email_allowed, ...): niente prefisso /rest/v1.
+  const rest = new PostgrestClient(restUrl || 'https://placeholder.invalid', {
     headers: { apikey: key },
     fetch: selfHostedFetch,
   })
