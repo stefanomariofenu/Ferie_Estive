@@ -1,7 +1,18 @@
 import { createClient } from '@supabase/supabase-js'
 
-const url = import.meta.env.VITE_SUPABASE_URL
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+// Config a runtime (per deploy Azure/on-prem senza ricompilare): il file
+// pubblico /config.js può impostare window.__FERIE_CONFIG__. Se assente o
+// vuoto, si usano le variabili iniettate al build (es. Netlify).
+type RuntimeConfig = { SUPABASE_URL?: string; SUPABASE_ANON_KEY?: string }
+const runtime: RuntimeConfig =
+  (typeof window !== 'undefined' &&
+    (window as unknown as { __FERIE_CONFIG__?: RuntimeConfig })
+      .__FERIE_CONFIG__) ||
+  {}
+
+const url = runtime.SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL
+const anonKey =
+  runtime.SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY
 
 /**
  * true solo se entrambe le variabili d'ambiente Supabase sono presenti.

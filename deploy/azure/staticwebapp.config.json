@@ -1,0 +1,10 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/assets/*", "/fonts/*", "*.js", "*.css", "*.svg", "*.png", "*.woff2", "/config.js"]
+  },
+  "mimeTypes": {
+    ".woff2": "font/woff2",
+    ".json": "application/json"
+  }
+}

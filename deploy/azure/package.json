@@ -1,0 +1,12 @@
+{
+  "name": "ferie-estive-2026-azure",
+  "version": "1.0.0",
+  "description": "Ferie Estive 2026 - pacchetto statico per Azure App Service (nessuna dipendenza).",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
