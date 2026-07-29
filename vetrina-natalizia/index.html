@@ -13,30 +13,25 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{height:100%;}
 body{font-family:'Instrument Sans',system-ui,sans-serif;color:#0B1C3A;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
-.grid{min-height:100vh;display:grid;grid-template-columns:1fr;}
-@media(min-width:1024px){.grid{grid-template-columns:1.06fr 1fr;}}
-
+.hidden{display:none!important;}
 @keyframes rise{0%{opacity:0;transform:translateY(18px);filter:blur(8px);}100%{opacity:1;transform:none;filter:blur(0);}}
 @keyframes floaty{0%,100%{transform:translate(0,0);}50%{transform:translate(-26px,18px);}}
 @keyframes fall{to{transform:translateY(114vh) translateX(28px) rotate(150deg);}}
 @keyframes pulse{0%,100%{opacity:.4;box-shadow:0 0 0 rgba(232,199,126,0);}50%{opacity:1;box-shadow:0 0 12px rgba(232,199,126,.85);}}
+@keyframes fadein{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
 .reveal{opacity:0;animation:rise .95s cubic-bezier(.22,1,.36,1) forwards;}
 
-/* ---------- Pannello istituzionale (sinistra) ---------- */
+/* ============ HERO (schermo 1) ============ */
+.grid{min-height:100vh;display:grid;grid-template-columns:1fr;}
+@media(min-width:1024px){.grid{grid-template-columns:1.06fr 1fr;}}
 .left{display:none;position:relative;overflow:hidden;padding:60px;color:#fff;flex-direction:column;justify-content:space-between;
-  background:
-    radial-gradient(90% 70% at 72% 22%, rgba(214,138,163,.30), transparent 60%),
-    linear-gradient(135deg,#380B1E 0%,#6B1E3B 52%,#8F2C4E 100%);
+  background:radial-gradient(90% 70% at 72% 22%, rgba(214,138,163,.30), transparent 60%),linear-gradient(135deg,#380B1E 0%,#6B1E3B 52%,#8F2C4E 100%);
   box-shadow:1px 0 0 rgba(0,0,0,.08);}
 @media(min-width:1024px){.left{display:flex;}}
-/* grana pellicola */
 .left::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.05;mix-blend-mode:overlay;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
-/* vignettatura */
-.left::before{content:"";position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(120% 100% at 50% 42%, transparent 55%, rgba(0,0,0,.32));}
-.glow{position:absolute;right:-160px;top:-140px;width:560px;height:560px;border-radius:50%;pointer-events:none;
-  background:radial-gradient(circle,rgba(231,169,189,.40),transparent 65%);animation:floaty 16s ease-in-out infinite;}
+.left::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 100% at 50% 42%, transparent 55%, rgba(0,0,0,.32));}
+.glow{position:absolute;right:-160px;top:-140px;width:560px;height:560px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(231,169,189,.40),transparent 65%);animation:floaty 16s ease-in-out infinite;}
 .snow{position:absolute;inset:0;pointer-events:none;overflow:hidden;will-change:transform;}
 .snow span{position:absolute;top:-18px;color:#fff;animation:fall linear infinite;}
 .snow.far span{filter:blur(1.4px);}
@@ -45,21 +40,13 @@ body{font-family:'Instrument Sans',system-ui,sans-serif;color:#0B1C3A;-webkit-fo
 .brand img{height:24px;width:auto;display:block;}
 .brand .ps{font-size:13px;font-weight:300;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.72);}
 .hero .kicker{font-size:13px;font-weight:600;letter-spacing:.36em;text-transform:uppercase;color:rgba(231,169,189,.95);}
-.hero h1{font-family:'Instrument Serif';font-style:italic;font-size:100px;line-height:.82;margin-top:14px;letter-spacing:-.02em;color:#fff;
-  text-shadow:0 2px 40px rgba(0,0,0,.25);}
+.hero h1{font-family:'Instrument Serif';font-style:italic;font-size:100px;line-height:.82;margin-top:14px;letter-spacing:-.02em;color:#fff;text-shadow:0 2px 40px rgba(0,0,0,.25);}
 .hero .yr{font-family:'Instrument Serif';font-size:40px;line-height:1;color:rgba(255,255,255,.5);margin-top:10px;font-feature-settings:"tnum";}
-.wip{display:inline-flex;align-items:center;gap:10px;margin-top:26px;padding:8px 16px;border-radius:999px;
-  font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.2em;color:#F3E0C4;
-  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);
-  -webkit-backdrop-filter:blur(10px) saturate(150%);backdrop-filter:blur(10px) saturate(150%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 10px 26px rgba(0,0,0,.22);}
+.wip{display:inline-flex;align-items:center;gap:10px;margin-top:26px;padding:8px 16px;border-radius:999px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.2em;color:#F3E0C4;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);-webkit-backdrop-filter:blur(10px) saturate(150%);backdrop-filter:blur(10px) saturate(150%);box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 10px 26px rgba(0,0,0,.22);}
 .wip .dot{width:7px;height:7px;border-radius:50%;background:#E8C77E;animation:pulse 1.9s ease-in-out infinite;}
 .reserved{font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:rgba(255,255,255,.48);}
-
-/* ---------- Area messaggio (destra) ---------- */
 .right{display:flex;align-items:center;justify-content:center;background:#FAF6F7;padding:60px 28px;position:relative;}
-.right::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
-  background:radial-gradient(80% 60% at 80% 10%, rgba(107,30,59,.05), transparent 60%);}
+.right::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;background:radial-gradient(80% 60% at 80% 10%, rgba(107,30,59,.05), transparent 60%);}
 .msg{width:100%;max-width:410px;position:relative;}
 .logo-m{height:22px;width:auto;filter:brightness(0);opacity:.85;margin-bottom:30px;}
 @media(min-width:1024px){.logo-m{display:none;}}
@@ -68,16 +55,47 @@ body{font-family:'Instrument Sans',system-ui,sans-serif;color:#0B1C3A;-webkit-fo
 .count{margin-top:30px;padding-top:22px;border-top:1px solid rgba(107,30,59,.12);display:flex;align-items:baseline;gap:12px;}
 .count .num{font-family:'Instrument Serif';font-size:42px;line-height:1;color:#6B1E3B;font-feature-settings:"tnum";}
 .count .lab{font-size:11.5px;text-transform:uppercase;letter-spacing:.14em;color:#9AA6B8;line-height:1.4;}
+.btn{display:inline-flex;align-items:center;gap:10px;margin-top:28px;padding:13px 22px;border-radius:14px;background:#6B1E3B;color:#fff;font-size:14px;font-weight:600;font-family:inherit;border:none;cursor:pointer;box-shadow:0 8px 24px rgba(107,30,59,.28);transition:transform .2s ease,box-shadow .2s ease,filter .2s;}
+.btn:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 12px 30px rgba(107,30,59,.34);}
+.btn .arrow{transition:transform .2s;}.btn:hover .arrow{transform:translateX(3px);}
 
-@media(prefers-reduced-motion:reduce){
-  .reveal{animation:none;opacity:1;}
-  .glow,.wip .dot{animation:none;}
-  .snow{display:none;}
-}
+/* ============ CALENDARIO (schermo 2) ============ */
+.calscreen{min-height:100vh;background:#FAF6F7;padding:44px 24px 72px;position:relative;animation:fadein .5s ease both;}
+.calscreen::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;background:radial-gradient(70% 50% at 85% 0%, rgba(107,30,59,.05), transparent 60%);}
+.calwrap{max-width:920px;margin:0 auto;position:relative;}
+.back{display:inline-flex;align-items:center;gap:8px;background:none;border:none;color:#6B1E3B;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;padding:6px 0;margin-bottom:26px;}
+.back:hover{opacity:.75;}
+.calhead .kick{font-size:12px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:#B27089;}
+.calhead h2{font-family:'Instrument Serif';font-size:40px;letter-spacing:-.015em;margin-top:8px;color:#0B1C3A;}
+.calhead p{margin-top:10px;font-size:14.5px;color:#5A6B85;max-width:560px;line-height:1.6;}
+.legend{display:flex;flex-wrap:wrap;gap:18px;margin:26px 0 14px;font-size:12.5px;color:#5A6B85;}
+.legend span{display:inline-flex;align-items:center;gap:8px;}
+.sw{width:14px;height:14px;border-radius:5px;display:inline-block;}
+.sw.fest{background:#6B1E3B;}
+.sw.vig{background:#fff;border:1.5px solid #E8C77E;}
+.sw.we{background:repeating-linear-gradient(45deg,#fff,#fff 5px,#efe7ea 5px,#efe7ea 10px);border:1px dashed rgba(107,30,59,.25);}
+.wk{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:10px;}
+.wk div{text-align:center;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#9AA6B8;}
+.wk div.we{color:#C9B6BF;}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;}
+.cell{min-height:82px;border-radius:14px;padding:11px 12px;background:#fff;border:1px solid rgba(11,28,58,.06);box-shadow:0 1px 2px rgba(11,28,58,.04);display:flex;flex-direction:column;justify-content:space-between;}
+.cell .d{font-size:17px;font-weight:600;}
+.cell .mo{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#B9C2CF;margin-left:2px;font-weight:600;}
+.cell .tag{font-size:10.5px;font-weight:600;line-height:1.2;}
+.cell.we{background:repeating-linear-gradient(45deg,#fbf8f9,#fbf8f9 6px,#f3ecef 6px,#f3ecef 12px);border:1px dashed rgba(107,30,59,.18);color:#9AA6B8;}
+.cell.fest{background:linear-gradient(150deg,#7A2244,#5A1330);color:#fff;border:none;box-shadow:0 10px 24px rgba(107,30,59,.28);}
+.cell.fest .mo{color:rgba(255,255,255,.7);}
+.cell.fest .tag{color:#F0D9B0;}
+.cell.fest .star{position:absolute;}
+.cell.vig{border:1.5px solid #E8C77E;box-shadow:0 2px 10px rgba(232,199,126,.25);}
+.cell.vig .tag{color:#B58A2E;}
+@media(max-width:640px){.calhead h2{font-size:30px;}.cell{min-height:64px;padding:8px 9px;}.cell .d{font-size:14px;}}
+@media(prefers-reduced-motion:reduce){.reveal{animation:none;opacity:1;}.glow,.wip .dot{animation:none;}.snow{display:none;}.calscreen{animation:none;}}
 </style>
 </head>
 <body>
-<div class="grid">
+<!-- ===== SCHERMO 1: HERO ===== -->
+<div class="grid" id="hero">
   <aside class="left">
     <span class="glow"></span>
     <div class="snow far" id="snowFar"></div>
@@ -98,40 +116,88 @@ body{font-family:'Instrument Sans',system-ui,sans-serif;color:#0B1C3A;-webkit-fo
       <p>La raccolta delle ferie estive è conclusa. Grazie a tutti per aver compilato il vostro piano.</p>
       <p>Il portale riaprirà per il piano di Natale.</p>
       <div class="count"><span class="num" id="cdNum">—</span><span class="lab" id="cdLab">all'apertura del piano di Natale</span></div>
+      <button class="btn" id="btnCal">Vedi il calendario <span class="arrow">→</span></button>
     </div>
   </main>
 </div>
+
+<!-- ===== SCHERMO 2: CALENDARIO ===== -->
+<section class="calscreen hidden" id="cal">
+  <div class="calwrap">
+    <button class="back" id="btnBack">← Torna</button>
+    <div class="calhead">
+      <div class="kick">Piano Ferie · Natale 2026</div>
+      <h2>Il calendario delle feste</h2>
+      <p>Da lunedì 21 dicembre 2026 a domenica 10 gennaio 2027. Le festività sono già evidenziate. Presto potrai compilare qui il tuo piano — per ora è un'anteprima.</p>
+    </div>
+    <div class="legend">
+      <span><span class="sw fest"></span>Festività</span>
+      <span><span class="sw vig"></span>Vigilia</span>
+      <span><span class="sw we"></span>Weekend</span>
+    </div>
+    <div class="wk" id="calWk"></div>
+    <div class="calgrid" id="calGrid"></div>
+  </div>
+</section>
+
 <script>
+/* ---- neve + parallasse + countdown ---- */
 (function(){
-  function snow(el,n,minS,maxS,minD,maxD){
-    if(!el)return; var f=['❄','❅','•','·'];
+  function snow(el,n,minS,maxS,minD,maxD){if(!el)return;var f=['❄','❅','•','·'];
     for(var i=0;i<n;i++){var e=document.createElement('span');e.textContent=f[i%f.length];
       e.style.left=Math.random()*100+'%';var d=minD+Math.random()*(maxD-minD);
       e.style.animationDuration=d+'s';e.style.animationDelay=(-Math.random()*d)+'s';
-      e.style.fontSize=(minS+Math.random()*(maxS-minS))+'px';
-      e.style.opacity=0.18+Math.random()*0.5;el.appendChild(e);}
-  }
+      e.style.fontSize=(minS+Math.random()*(maxS-minS))+'px';e.style.opacity=0.18+Math.random()*0.5;el.appendChild(e);}}
   var far=document.getElementById('snowFar'),near=document.getElementById('snowNear');
-  snow(far,11,7,11,14,22); snow(near,9,10,17,8,13);
-  // parallasse morbida al mouse (solo desktop, puntatore preciso)
-  if(window.matchMedia && window.matchMedia('(pointer:fine)').matches){
+  snow(far,11,7,11,14,22);snow(near,9,10,17,8,13);
+  if(window.matchMedia&&window.matchMedia('(pointer:fine)').matches){
     var tx=0,ty=0,cx=0,cy=0;
-    window.addEventListener('mousemove',function(e){
-      tx=(e.clientX/window.innerWidth-.5); ty=(e.clientY/window.innerHeight-.5);
-    });
-    (function loop(){ cx+=(tx-cx)*.06; cy+=(ty-cy)*.06;
-      if(far) far.style.transform='translate('+(cx*14)+'px,'+(cy*10)+'px)';
-      if(near) near.style.transform='translate('+(cx*30)+'px,'+(cy*20)+'px)';
-      requestAnimationFrame(loop); })();
+    window.addEventListener('mousemove',function(e){tx=(e.clientX/window.innerWidth-.5);ty=(e.clientY/window.innerHeight-.5);});
+    (function loop(){cx+=(tx-cx)*.06;cy+=(ty-cy)*.06;
+      if(far)far.style.transform='translate('+(cx*14)+'px,'+(cy*10)+'px)';
+      if(near)near.style.transform='translate('+(cx*30)+'px,'+(cy*20)+'px)';
+      requestAnimationFrame(loop);})();
   }
-  // countdown all'apertura (1 dicembre 2026)
-  var target=new Date(2026,11,1);
-  var days=Math.ceil((target-new Date())/86400000);
+  var target=new Date(2026,11,1);var days=Math.ceil((target-new Date())/86400000);
   var num=document.getElementById('cdNum'),lab=document.getElementById('cdLab');
   if(days>1){num.textContent=days;lab.textContent='giorni all’apertura del piano di Natale';}
   else if(days===1){num.textContent='1';lab.textContent='giorno all’apertura';}
   else{num.textContent='✓';lab.textContent='il piano di Natale sta per aprire';}
 })();
+
+/* ---- calendario anteprima (21 dic 2026 -> 10 gen 2027) ---- */
+(function(){
+  var WK=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
+  var wkEl=document.getElementById('calWk');
+  WK.forEach(function(w,i){var d=document.createElement('div');d.textContent=w;if(i>=5)d.className='we';wkEl.appendChild(d);});
+  var FEST={'12-25':'Natale','12-26':'S. Stefano','1-1':'Capodanno','1-6':'Epifania'};
+  var VIG={'12-24':'Vigilia','12-31':'S. Silvestro'};
+  var MO={12:'dic',1:'gen'};
+  var grid=document.getElementById('calGrid');
+  var d=new Date(2026,11,21),end=new Date(2027,0,10);
+  while(d<=end){
+    var m=d.getMonth()+1,dom=d.getDate(),dow=d.getDay(),weekend=(dow===0||dow===6);
+    var key=m+'-'+dom, fest=FEST[key], vig=VIG[key];
+    var c=document.createElement('div');c.className='cell'+(fest?' fest':(vig?' vig':(weekend?' we':'')));
+    var showMo=(dom===21||dom===1);
+    c.innerHTML='<div class="d">'+dom+(showMo?' <span class="mo">'+MO[m]+'</span>':'')+'</div>'+
+      '<div class="tag">'+(fest||vig||'')+'</div>';
+    grid.appendChild(c);
+    d.setDate(d.getDate()+1);
+  }
+})();
+
+/* ---- navigazione ---- */
+document.getElementById('btnCal').addEventListener('click',function(){
+  document.getElementById('hero').classList.add('hidden');
+  document.getElementById('cal').classList.remove('hidden');
+  window.scrollTo(0,0);
+});
+document.getElementById('btnBack').addEventListener('click',function(){
+  document.getElementById('cal').classList.add('hidden');
+  document.getElementById('hero').classList.remove('hidden');
+  window.scrollTo(0,0);
+});
 </script>
 </body>
 </html>
