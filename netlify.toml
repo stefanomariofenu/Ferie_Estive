@@ -1,8 +1,9 @@
+# Vetrina natalizia: nessun build, pubblica la pagina statica.
 [build]
-  command = "npm run build"
-  publish = "dist"
+  command = "echo nessun build necessario"
+  publish = "vetrina-natalizia"
 
-# SPA fallback: tutte le route servite da index.html
+# tutte le route servite dalla vetrina
 [[redirects]]
   from = "/*"
   to = "/index.html"
