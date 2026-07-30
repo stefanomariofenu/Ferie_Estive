@@ -66,7 +66,7 @@ body{font-family:'Instrument Sans',system-ui,sans-serif;color:#0B1C3A;-webkit-fo
 .back{display:inline-flex;align-items:center;gap:8px;background:none;border:none;color:#6B1E3B;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;padding:6px 0;margin-bottom:26px;}
 .back:hover{opacity:.75;}
 .calhead .kick{font-size:12px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:#B27089;}
-.calhead h2{font-family:'Instrument Serif';font-size:40px;letter-spacing:-.015em;margin-top:8px;color:#0B1C3A;}
+.calhead h2{font-family:'Instrument Serif';font-weight:400;font-size:31px;letter-spacing:-.015em;margin-top:8px;color:#0B1C3A;}
 .calhead p{margin-top:10px;font-size:14.5px;color:#5A6B85;max-width:560px;line-height:1.6;}
 .legend{display:flex;flex-wrap:wrap;gap:18px;margin:26px 0 14px;font-size:12.5px;color:#5A6B85;}
 .legend span{display:inline-flex;align-items:center;gap:8px;}
@@ -132,7 +132,6 @@ body{font-family:'Instrument Sans',system-ui,sans-serif;color:#0B1C3A;-webkit-fo
     </div>
     <div class="legend">
       <span><span class="sw fest"></span>Festività</span>
-      <span><span class="sw vig"></span>Vigilia</span>
       <span><span class="sw we"></span>Weekend</span>
     </div>
     <div class="wk" id="calWk"></div>
@@ -178,7 +177,7 @@ body{font-family:'Instrument Sans',system-ui,sans-serif;color:#0B1C3A;-webkit-fo
   while(d<=end){
     var m=d.getMonth()+1,dom=d.getDate(),dow=d.getDay(),weekend=(dow===0||dow===6);
     var key=m+'-'+dom, fest=FEST[key], vig=VIG[key];
-    var c=document.createElement('div');c.className='cell'+(fest?' fest':(vig?' vig':(weekend?' we':'')));
+    var c=document.createElement('div');c.className='cell'+(fest?' fest':(weekend?' we':''));
     var showMo=(dom===21||dom===1);
     c.innerHTML='<div class="d">'+dom+(showMo?' <span class="mo">'+MO[m]+'</span>':'')+'</div>'+
       '<div class="tag">'+(fest||vig||'')+'</div>';
