@@ -78,13 +78,19 @@ body{font-family:'Instrument Sans',system-ui,sans-serif;color:#0B1C3A;-webkit-fo
 .sw.vig{background:#fff;border:1.5px solid #E8C77E;}
 .sw.we{background:repeating-linear-gradient(45deg,#fff,#fff 5px,#efe7ea 5px,#efe7ea 10px);border:1px dashed rgba(107,30,59,.25);}
 .sw.sel{background:linear-gradient(150deg,#F7EAEF,#ECD5DE);border:1.5px solid #B27089;}
-.selbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:22px 0 6px;padding:13px 18px;border-radius:14px;background:#fff;border:1px solid rgba(107,30,59,.12);box-shadow:0 2px 12px rgba(11,28,58,.05);}
-.selbar .cnt{display:flex;align-items:baseline;gap:9px;}
-.selbar .cnt b{font-family:'Instrument Serif';font-size:30px;line-height:1;color:#6B1E3B;font-feature-settings:"tnum";display:inline-block;transition:transform .16s cubic-bezier(.34,1.56,.64,1);}
-.selbar .cnt small{font-size:12.5px;color:#5A6B85;}
-.selbar .clr{background:none;border:none;color:#B27089;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:7px 12px;border-radius:10px;transition:background .18s,color .18s,opacity .18s;}
+.selbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:22px 0 6px;padding:14px 20px;border-radius:14px;background:#fff;border:1px solid rgba(107,30,59,.12);box-shadow:0 2px 12px rgba(11,28,58,.05);}
+.selbar .stats{display:flex;gap:12px 30px;flex-wrap:wrap;}
+.selbar .stat{display:flex;align-items:baseline;gap:9px;}
+.selbar .stat b{font-family:'Instrument Serif';font-size:31px;line-height:1;color:#6B1E3B;font-feature-settings:"tnum";display:inline-block;transition:transform .16s cubic-bezier(.34,1.56,.64,1);}
+.selbar .stat.rest b{color:#8F2C4E;}
+.selbar .stat small{font-size:12.5px;color:#5A6B85;max-width:104px;line-height:1.25;}
+.selbar .acts{display:flex;align-items:center;gap:6px;}
+.pontebtn{background:linear-gradient(135deg,#7A2244,#5A1330);color:#fff;border:none;font-family:inherit;font-size:13px;font-weight:600;padding:10px 16px;border-radius:11px;cursor:pointer;box-shadow:0 6px 18px rgba(107,30,59,.24);transition:transform .18s ease,box-shadow .18s ease,filter .18s;}
+.pontebtn:hover{filter:brightness(1.09);transform:translateY(-1px);box-shadow:0 10px 24px rgba(107,30,59,.30);}
+.selbar .clr{background:none;border:none;color:#B27089;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:9px 12px;border-radius:10px;transition:background .18s,color .18s,opacity .18s;}
 .selbar .clr:hover{background:rgba(178,112,137,.12);color:#6B1E3B;}
 .selbar .clr:disabled{opacity:.38;cursor:default;background:none;color:#B27089;}
+.cell.pick:focus-visible{outline:2px solid #6B1E3B;outline-offset:2px;}
 .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(22px);background:#0B1C3A;color:#fff;font-size:13px;font-weight:500;padding:11px 18px;border-radius:12px;box-shadow:0 14px 34px rgba(11,28,58,.30);opacity:0;transition:opacity .3s ease,transform .3s cubic-bezier(.22,1,.36,1);z-index:60;pointer-events:none;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .wk{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:10px;}
@@ -157,8 +163,14 @@ body{font-family:'Instrument Sans',system-ui,sans-serif;color:#0B1C3A;-webkit-fo
       <span><span class="sw we"></span>Weekend</span>
     </div>
     <div class="selbar">
-      <div class="cnt"><b id="selCount">0</b><small id="selWord">giorni di ferie selezionati</small></div>
-      <button class="clr" id="selClear" disabled>Svuota</button>
+      <div class="stats">
+        <div class="stat"><b id="selCount">0</b><small id="selWord">giorni di ferie selezionati</small></div>
+        <div class="stat rest"><b id="restCount">—</b><small id="restWord">giorni di riposo di fila</small></div>
+      </div>
+      <div class="acts">
+        <button class="pontebtn" id="btnPonte">Ponte perfetto</button>
+        <button class="clr" id="selClear" disabled>Svuota</button>
+      </div>
     </div>
     <div class="wk" id="calWk"></div>
     <div class="calgrid" id="calGrid"></div>
@@ -208,39 +220,57 @@ body{font-family:'Instrument Sans',system-ui,sans-serif;color:#0B1C3A;-webkit-fo
   var VIG={'12-24':'Vigilia','12-31':'S. Silvestro'};
   var MO={12:'dic',1:'gen'};
   var grid=document.getElementById('calGrid');
+  var seq=[],cellByKey={};
   var d=new Date(2026,11,21),end=new Date(2027,0,10);
   while(d<=end){
     var m=d.getMonth()+1,dom=d.getDate(),dow=d.getDay(),weekend=(dow===0||dow===6);
     var key=m+'-'+dom, fest=FEST[key], vig=VIG[key];
     var selectable=!fest&&!weekend;
     var c=document.createElement('div');c.className='cell'+(fest?' fest':(weekend?' we':''))+(selectable?' pick':'');
-    if(selectable)c.dataset.key=key;
+    if(selectable){c.dataset.key=key;c.tabIndex=0;c.setAttribute('role','button');c.setAttribute('aria-pressed','false');c.setAttribute('aria-label',dom+' '+MO[m]+', segna come ferie');cellByKey[key]=c;}
     var showMo=(dom===21||dom===1);
     c.innerHTML='<div class="d">'+dom+(showMo?' <span class="mo">'+MO[m]+'</span>':'')+'</div>'+
       '<div class="tag">'+(fest||vig||'')+'</div>'+
       (selectable?'<span class="chk" aria-hidden="true">✓</span>':'');
     grid.appendChild(c);
+    seq.push({key:key,baseRest:(!!fest||weekend)});
     d.setDate(d.getDate()+1);
   }
 
-  /* ---- selezione ferie (anteprima): click + trascinamento ---- */
+  /* ---- selezione ferie (anteprima): click + trascinamento + tastiera ---- */
   var picks=new Set();
   var bEl=document.getElementById('selCount'),wEl=document.getElementById('selWord'),clrEl=document.getElementById('selClear');
+  var rEl=document.getElementById('restCount'),rwEl=document.getElementById('restWord');
   var toastEl=document.getElementById('toast'),toasted=false,toH;
-  function showToast(msg){toastEl.textContent=msg;toastEl.classList.add('show');clearTimeout(toH);toH=setTimeout(function(){toastEl.classList.remove('show');},3400);}
+  function showToast(msg){toastEl.textContent=msg;toastEl.classList.add('show');clearTimeout(toH);toH=setTimeout(function(){toastEl.classList.remove('show');},3600);}
+  function pop(el){el.style.transform='scale(1.22)';setTimeout(function(){el.style.transform='';},150);}
+  /* piu lunga sequenza di giorni di riposo consecutivi (ferie + festivi + weekend) nella finestra */
+  function longestRest(){var best=0,run=0;for(var i=0;i<seq.length;i++){if(seq[i].baseRest||picks.has(seq[i].key)){run++;if(run>best)best=run;}else run=0;}return best;}
   function refresh(){var n=picks.size;bEl.textContent=n;wEl.textContent=(n===1?'giorno di ferie selezionato':'giorni di ferie selezionati');clrEl.disabled=(n===0);
-    bEl.style.transform='scale(1.22)';setTimeout(function(){bEl.style.transform='';},150);}
-  function setSel(cell,on){var k=cell.dataset.key;if(on){if(picks.has(k))return;picks.add(k);cell.classList.add('sel');cell.querySelector('.tag').textContent='Ferie';}
-    else{if(!picks.has(k))return;picks.delete(k);cell.classList.remove('sel');cell.querySelector('.tag').textContent='';}}
+    var r=longestRest();if(String(r)!==rEl.textContent){rEl.textContent=r;pop(rEl);}rwEl.textContent=(r===1?'giorno di riposo di fila':'giorni di riposo di fila');pop(bEl);}
+  function setSel(cell,on){var k=cell.dataset.key;if(on){if(picks.has(k))return;picks.add(k);cell.classList.add('sel');cell.setAttribute('aria-pressed','true');cell.querySelector('.tag').textContent='Ferie';}
+    else{if(!picks.has(k))return;picks.delete(k);cell.classList.remove('sel');cell.setAttribute('aria-pressed','false');cell.querySelector('.tag').textContent='';}}
+  function firstTouch(){if(!toasted){toasted=true;showToast('Anteprima · le selezioni non vengono salvate');}}
   function cellAt(x,y){var el=document.elementFromPoint(x,y);return el?el.closest('.cell.pick'):null;}
   var dragging=false,mode=true;
   grid.style.touchAction='none';
   grid.addEventListener('pointerdown',function(e){var cell=cellAt(e.clientX,e.clientY);if(!cell)return;
-    e.preventDefault();if(!toasted){toasted=true;showToast('Anteprima · le selezioni non vengono salvate');}
-    dragging=true;mode=!cell.classList.contains('sel');setSel(cell,mode);refresh();});
+    e.preventDefault();firstTouch();dragging=true;mode=!cell.classList.contains('sel');setSel(cell,mode);refresh();});
   window.addEventListener('pointermove',function(e){if(!dragging)return;var cell=cellAt(e.clientX,e.clientY);if(!cell)return;setSel(cell,mode);refresh();});
   window.addEventListener('pointerup',function(){dragging=false;});
+  grid.addEventListener('keydown',function(e){if(e.key!==' '&&e.key!=='Enter')return;var cell=e.target.closest&&e.target.closest('.cell.pick');if(!cell)return;e.preventDefault();firstTouch();setSel(cell,!cell.classList.contains('sel'));refresh();});
   clrEl.addEventListener('click',function(){grid.querySelectorAll('.cell.sel').forEach(function(c){setSel(c,false);});refresh();});
+
+  /* ---- Ponte perfetto: il bridge natalizio piu efficiente (5 ferie -> 11 giorni di fila) ---- */
+  document.getElementById('btnPonte').addEventListener('click',function(){
+    firstTouch();
+    grid.querySelectorAll('.cell.sel').forEach(function(c){setSel(c,false);});
+    ['12-24','12-28','12-29','12-30','12-31'].forEach(function(k){if(cellByKey[k])setSel(cellByKey[k],true);});
+    refresh();
+    showToast('Ponte perfetto · 5 giorni di ferie ti regalano 11 giorni di riposo di fila, dal 24 dicembre al 3 gennaio');
+  });
+
+  refresh();
 })();
 
 /* ---- navigazione ---- */
